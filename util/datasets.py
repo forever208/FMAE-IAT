@@ -12,6 +12,8 @@ import os
 import PIL
 
 from torchvision import datasets, transforms
+from torch.utils.data import Dataset
+from PIL import Image
 
 from timm.data import create_transform
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
@@ -63,3 +65,32 @@ def build_transform(is_train, args):
     t.append(transforms.ToTensor())
     t.append(transforms.Normalize(mean, std))
     return transforms.Compose(t)
+
+
+class CustomDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir  # path of each dataset
+        self.transform = transform
+        self.dataset_folders = os.listdir(root_dir)
+        self.image_paths = self.get_image_paths()
+
+    def get_image_paths(self):
+        image_paths = []
+        for folder in self.dataset_folders:
+            folder_path = os.path.join(self.root_dir, folder)
+            for filename in os.listdir(folder_path):
+                if filename.endswith(('.jpg', '.jpeg', '.png')):
+                    image_paths.append(os.path.join(folder_path, filename))
+        return image_paths
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.image_paths[idx]
+        image = Image.open(img_path).convert('RGB')
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image
