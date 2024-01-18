@@ -14,6 +14,8 @@ from PIL import Image
 import json
 import zipfile
 import io
+import numpy as np
+import lmdb
 
 import torch
 from torchvision import datasets, transforms
@@ -74,27 +76,22 @@ def build_transform(is_train, args):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, zip_file_path=None, transform=None):
-        self.zip_file_path = zip_file_path  # path of each dataset zip file
+    def __init__(self, lmdb_path=None, transform=None):
+        self.env = lmdb.open(lmdb_path, readonly=True, lock=False, readahead=False, meminit=False)
         self.transform = transform
 
-        # Open zip file and get all jpg filenames
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-            all_files = zip_ref.namelist()  # Get a list of all files in the zip archive
-            self.file_list = [file for file in all_files if file.lower().endswith('.jpg')]  # CASIA-WebFace/0000102/001.jpg
+        with self.env.begin(write=False) as txn:
+            self.keys = [key for key, _ in txn.cursor()]
 
     def __len__(self):
-        return len(self.file_list)
+        return len(self.keys)
 
     def __getitem__(self, index):
-        img_name = self.file_list[index]  # Get the file name at the given index
+        with self.env.begin(write=False) as txn:
+            key = self.keys[index]
+            img_bytes = txn.get(key)
 
-        # Read the image data from the zip archive
-        with zipfile.ZipFile(self.zip_file_path, 'r') as zip_ref:
-            with zip_ref.open(img_name) as file:
-                img_data = io.BytesIO(file.read())  # Create a BytesIO object to wrap the image data
-
-        img = Image.open(img_data).convert('RGB')
+        img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
 
         if self.transform:
             img = self.transform(img)

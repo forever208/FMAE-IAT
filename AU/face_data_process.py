@@ -6,9 +6,11 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import h5py
+import lmdb
 import matplotlib.pyplot as plt
 import zipfile
 import io
+import pickle
 
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -130,28 +132,28 @@ def resize_dataset(folder_path):
         print(f"{total_images} total images, {delete_images} images deleted, {resized_images} images resized")
 
 
-def folder_datasets_2_npz_datasets(root_folder=None, npy_folder=None):
+def folder_datasets_2_npz_datasets(root_folder=None, npz_folder=None):
     """
     save one dataset into a single npy file
     """
 
-    if not os.path.exists(npy_folder):
-        os.makedirs(npy_folder)
+    total_images = 0
+    img_count = 0
+    npz_idx = 1
+    images = []
+
+    if not os.path.exists(npz_folder):
+        os.makedirs(npz_folder)
 
     for foldername in tqdm(os.listdir(root_folder)):
         folder_path = os.path.join(root_folder, foldername)
-        images = []
 
         if os.path.isdir(folder_path):
             for filename in os.listdir(folder_path):
                 img_path = os.path.join(folder_path, filename)
                 if os.path.isfile(img_path):
                     try:
-                        img = Image.open(img_path)
-
-                        # Convert the image to RGB mode if it is grayscale
-                        if img.mode == 'L':
-                            img = img.convert('RGB')
+                        img = Image.open(img_path).convert('RGB')
 
                         width, height = img.size
                         if width == 224 and height == 224:
@@ -161,47 +163,62 @@ def folder_datasets_2_npz_datasets(root_folder=None, npy_folder=None):
                             img = img.resize((224, 224))
 
                         img_array = np.array(img)
-                        if not img_array.shape[2] == 3:
-                            print(img_array.shape)
                         images.append(img_array)
+                        img_count += 1
+                        total_images += 1
                     except Exception as e:
                         print(f"Error reading image {img_path}: {str(e)}")
 
-        print(f"{len(images)} images found in {foldername}")
+                if img_count == 10000:
+                    images_array = np.array(images, dtype=np.uint8)
+                    npy_path = npz_folder + '/' + str(npz_idx) + '.npz'
+                    np.savez_compressed(npy_path, data=images_array)
+                    print(f"now, {images_array.shape[0]} images saved into: {npy_path}")
+
+                    npz_idx += 1
+                    img_count = 0
+                    images = []
+
+    # save the last images
+    if images:
         images_array = np.array(images, dtype=np.uint8)
-        npy_path = npy_folder + '/' + foldername + '.npz'
+        npy_path = npz_folder + '/' + str(npz_idx) + '.npz'
         np.savez_compressed(npy_path, data=images_array)
-        print(f"{images_array.shape[0]} images saved into: {npy_path}")
+        print(f"now, {images_array.shape[0]} images saved into: {npy_path}")
+
+    print(f"total {total_images} images saved into npz files")
 
 
-def verify_npz_images(npz_path=None):
-    npz_file = np.load(npz_path)
-    image_data = npz_file['data']
+def folder_datasets_2_lmdb_datasets(root_folder=None, output_lmdb=None):
+    """
+    save one dataset into a single npy file
+    """
 
-    # Visualize the image using Matplotlib
-    plt.imshow(image_data[0])  # Assuming the image is grayscale
-    plt.show()
+    total_images = 0
+    env = lmdb.open(output_lmdb, map_size=int(1e12))
 
-    # Close the npz_file
-    npz_file.close()
+    with env.begin(write=True) as txn:
+        for foldername in tqdm(os.listdir(root_folder)):
+            folder_path = os.path.join(root_folder, foldername)
 
+            if os.path.isdir(folder_path):
+                for filename in os.listdir(folder_path):
+                    # if filename.lower().endswith('.jpg'):
+                    img_path = os.path.join(folder_path, filename)
+                    if os.path.isfile(img_path):
+                        with open(img_path, 'rb') as f:
+                            image_data = f.read()
+                            total_images += 1
 
-def read_img_from_zip(zip_file_path=None):
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        file_list = zip_ref.namelist()  # Get a list of all files in the zip archive
+                            # Convert image data to LMDB-friendly format
+                            image_key = os.path.relpath(img_path, root_folder).encode('utf-8')
+                            image_value = image_data
 
-        # Iterate over each file in the zip archive
-        for file_name in file_list:
-            if file_name.lower().endswith('.jpg'):  # Check if the file is a JPG image
-                image_data = zip_ref.read(file_name)  # Read the image data from the zip archive
-                image_data_io = io.BytesIO(image_data)  # Create a BytesIO object to wrap the image data
+                            # Store in LMDB
+                            txn.put(image_key, image_value)
 
-                img = Image.open(image_data_io)  # Open the image using PIL
-
-                # img.show()
-                img_array = np.array(img)
-                print(img_array.shape)
-                print(img_array)
+    env.close()
+    print(f"total {total_images} images in {root_folder}")
 
 
 if __name__ == "__main__":
@@ -210,7 +227,7 @@ if __name__ == "__main__":
     # video_2_images(video_folder='/home/mang/Downloads/DISFA',
     #                output_folder='/home/mang/Downloads/DISFA_imgs')
     # resize_dataset('/home/mang/Downloads/AffectNet_frames')
-    # folder_datasets_2_npz_datasets(root_folder='/home/mang/Downloads/face_datasets/MegaFace',
-    #                                npy_folder='/home/mang/Downloads/face_datasets/MegaFace-npz')
-    # verify_npz_images(npz_path='/home/mang/Downloads/face_datasets/AffectNet-npz/1.npz')
-    read_img_from_zip(zip_file_path='/home/mang/Downloads/face_datasets/AffectNet.zip')
+    # folder_datasets_2_npz_datasets(root_folder='/home/mang/Downloads/face_datasets/celeba',
+    #                                npz_folder='/home/mang/Downloads/face_datasets/celeba-npz')
+    folder_datasets_2_lmdb_datasets(root_folder='/home/mang/Downloads/face_datasets/MS-Celeb-1M',
+                                    output_lmdb='/home/mang/Downloads/face_datasets/MS-Celeb-1M.lmdb')
