@@ -10,13 +10,19 @@
 
 import os
 import PIL
+from PIL import Image
+import json
+import zipfile
+import io
 
+import torch
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset
-from PIL import Image
 
 from timm.data import create_transform
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+
+BP4D_ROOT_PATH = '/home/mang/Downloads/BP4D_valid/'
 
 
 def build_dataset(is_train, args):
@@ -68,29 +74,102 @@ def build_transform(is_train, args):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
-        self.root_dir = root_dir  # path of each dataset
+    def __init__(self, zip_file_path=None, transform=None):
+        self.zip_file_path = zip_file_path  # path of each dataset zip file
         self.transform = transform
-        self.dataset_folders = os.listdir(root_dir)
-        self.image_paths = self.get_image_paths()
 
-    def get_image_paths(self):
-        image_paths = []
-        for folder in self.dataset_folders:
-            folder_path = os.path.join(self.root_dir, folder)
-            for filename in os.listdir(folder_path):
-                if filename.endswith(('.jpg', '.jpeg', '.png')):
-                    image_paths.append(os.path.join(folder_path, filename))
-        return image_paths
+        # Open zip file and get all jpg filenames
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            all_files = zip_ref.namelist()  # Get a list of all files in the zip archive
+            self.file_list = [file for file in all_files if file.lower().endswith('.jpg')]  # CASIA-WebFace/0000102/001.jpg
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.file_list)
+
+    def __getitem__(self, index):
+        img_name = self.file_list[index]  # Get the file name at the given index
+
+        # Read the image data from the zip archive
+        with zipfile.ZipFile(self.zip_file_path, 'r') as zip_ref:
+            with zip_ref.open(img_name) as file:
+                img_data = io.BytesIO(file.read())  # Create a BytesIO object to wrap the image data
+
+        img = Image.open(img_data).convert('RGB')
+
+        if self.transform:
+            img = self.transform(img)
+
+        return img
+
+
+def build_AU_dataset(json_path, is_train, args):
+    transform = build_AU_transform(is_train, args)
+    dataset = AUDataset(json_path, transform=transform)
+
+    return dataset
+
+
+def build_AU_transform(is_train, args):
+    mean = IMAGENET_DEFAULT_MEAN
+    std = IMAGENET_DEFAULT_STD
+
+    # train transform
+    if is_train:
+        transform = create_transform(
+            input_size=args.input_size,
+            is_training=True,
+            color_jitter=args.color_jitter,
+            auto_augment=args.aa,
+            interpolation='bicubic',
+            re_prob=args.reprob,
+            re_mode=args.remode,
+            re_count=args.recount,
+            mean=mean,
+            std=std,
+        )
+        return transform
+    # eval transform
+    else:
+        return transforms.Compose(
+            [transforms.Resize([args.input_size, args.input_size]),
+             transforms.ToTensor(),
+             transforms.Normalize(mean, std)]
+        )
+
+class AUDataset(Dataset):
+    """
+    accept the json file to construct the dataset.
+    Each line of the json file contains the image path and the AU labels.
+    """
+    def __init__(self, json_file, transform=None):
+        self.data = self._load_data(json_file)
+        print(f"building dataset from: {json_file}")
+        self.transform = transform
+        self.AUs = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
+        self.label2idx = {label: idx for idx, label in enumerate(self.AUs)}
+
+    def _load_data(self, json_file):
+        dict_list = []
+        with open(json_file, 'r') as file:
+            for line in file:
+                loaded_dict = json.loads(line)
+                dict_list.append(loaded_dict)
+        return dict_list
+
+    def __len__(self):
+        return len(self.data)
 
     def __getitem__(self, idx):
-        img_path = self.image_paths[idx]
-        image = Image.open(img_path).convert('RGB')
+        image_path = BP4D_ROOT_PATH + self.data[idx]['img_path']
+        image = Image.open(image_path).convert('RGB')
+
+        # Convert label indices to binary representation
+        AUs = self.data[idx]['AUs']  # e.g. [4, 10, 14]
+        labels = torch.zeros(len(self.AUs))  # 12 classes
+        for au in AUs:
+            labels[self.label2idx[au]] = 1
 
         if self.transform:
             image = self.transform(image)
 
-        return image
+        return image, labels

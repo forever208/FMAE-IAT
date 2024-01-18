@@ -37,7 +37,7 @@ from engine_pretrain import train_one_epoch
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
-    parser.add_argument('--batch_size', default=64, type=int,
+    parser.add_argument('--batch_size', default=32, type=int,
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
     parser.add_argument('--epochs', default=100, type=int)
     parser.add_argument('--accum_iter', default=1, type=int,
@@ -65,14 +65,14 @@ def get_args_parser():
     parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N', help='epochs to warmup LR')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default='/home/mang/Downloads/face_datasets', type=str, help='dataset path')
+    parser.add_argument('--data_path', default='/home/mang/Downloads/face_datasets_zip', type=str, help='dataset path')
     parser.add_argument('--output_dir', default='./output_dir', help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default='./output_dir', help='path where to tensorboard log')
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
-    parser.add_argument('--num_workers', default=8, type=int)
+    parser.add_argument('--num_workers', default=4, type=int)
     parser.add_argument('--pin_mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
     parser.add_argument('--no_pin_mem', action='store_false', dest='pin_mem')
@@ -107,12 +107,12 @@ def main(args):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-    # dataset
+    # create dataset by multiple dataset zip files
     dataset_folders = [folder for folder in os.listdir(args.data_path)]
     print(f"training image datasets: {dataset_folders}")
     dataset_paths = [os.path.join(args.data_path, subfolder) for subfolder in dataset_folders]
     combined_dataset = ConcatDataset(
-        [CustomDataset(root_dir=path, transform=transform_train) for path in dataset_paths]
+        [CustomDataset(zip_file_path=path, transform=transform_train) for path in dataset_paths]
     )
     print(f"Number of training samples: {len(combined_dataset)}")
 
