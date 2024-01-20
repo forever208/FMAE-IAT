@@ -164,9 +164,10 @@ def main(args):
     print(optimizer)
     loss_scaler = NativeScaler()
 
+    # resume training
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)
 
-    print(f"Start training for {args.epochs} epochs")
+    print(f"Start training from {args.start_epoch} epochs to {args.epochs} epochs")
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:

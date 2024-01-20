@@ -44,7 +44,7 @@ def get_args_parser():
     parser.add_argument('--input_size', default=224, type=int, help='images input size')
 
     # Optimizer parameters
-    parser.add_argument('--batch_size', default=16, type=int,
+    parser.add_argument('--batch_size', default=32, type=int,
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
     parser.add_argument('--epochs', default=20, type=int)
     parser.add_argument('--accum_iter', default=1, type=int,
@@ -102,7 +102,7 @@ def get_args_parser():
                         help='Use class token instead of global pool for classification')
 
     # Dataset parameters
-    # parser.add_argument('--data_path', default='/datasets01/imagenet_full_size/061417/', type=str, help='dataset path')
+    parser.add_argument('--root_path', default='/home/mang/Downloads/BP4D_no_crop/', type=str, help='dataset root path')
     parser.add_argument('--train_path', default='./AU/BP4D_train3.json', type=str, help='train json path')
     parser.add_argument('--test_path', default='./AU/BP4D_test3.json', type=str, help='test json path')
     parser.add_argument('--nb_classes', default=12, type=int, help='number of the classification types')
@@ -131,7 +131,7 @@ def get_args_parser():
 
 
 def main(args):
-    misc.init_distributed_mode(args)
+    misc.init_single_GPU_mode(args)
     print('job dir: {}'.format(os.path.dirname(os.path.realpath(__file__))))
     print("{}".format(args).replace(', ', ',\n'))
     device = torch.device(args.device)
@@ -289,11 +289,11 @@ def main(args):
         )
 
         # save ckpt
-        if args.output_dir:
-            misc.save_model(
-                args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
-                loss_scaler=loss_scaler, epoch=epoch
-            )
+        # if args.output_dir:
+        #     misc.save_model(
+        #         args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
+        #         loss_scaler=loss_scaler, epoch=epoch
+        #     )
 
         # evaluation
         test_stats = AU_evaluate(data_loader_val, model, device)

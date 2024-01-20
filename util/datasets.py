@@ -24,8 +24,6 @@ from torch.utils.data import Dataset
 from timm.data import create_transform
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
-BP4D_ROOT_PATH = '/home/mang/Downloads/BP4D_valid/'
-
 
 def build_dataset(is_train, args):
     transform = build_transform(is_train, args)
@@ -101,7 +99,7 @@ class CustomDataset(Dataset):
 
 def build_AU_dataset(json_path, is_train, args):
     transform = build_AU_transform(is_train, args)
-    dataset = AUDataset(json_path, transform=transform)
+    dataset = AUDataset(args.root_path, json_path, transform=transform)
 
     return dataset
 
@@ -138,9 +136,11 @@ class AUDataset(Dataset):
     accept the json file to construct the dataset.
     Each line of the json file contains the image path and the AU labels.
     """
-    def __init__(self, json_file, transform=None):
+    def __init__(self, root_path, json_file, transform=None):
         self.data = self._load_data(json_file)
         print(f"building dataset from: {json_file}")
+        self.root_path = root_path
+        print(f"dataset path: {self.root_path}")
         self.transform = transform
         self.AUs = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
         self.label2idx = {label: idx for idx, label in enumerate(self.AUs)}
@@ -157,7 +157,7 @@ class AUDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        image_path = BP4D_ROOT_PATH + self.data[idx]['img_path']
+        image_path = self.root_path + self.data[idx]['img_path']
         image = Image.open(image_path).convert('RGB')
 
         # Convert label indices to binary representation
