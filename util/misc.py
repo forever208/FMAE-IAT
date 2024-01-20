@@ -248,6 +248,13 @@ def init_distributed_mode(args):
     setup_for_distributed(args.rank == 0)
 
 
+def init_single_GPU_mode(args):
+    print('Not using distributed mode')
+    setup_for_distributed(is_master=True)  # hack
+    args.distributed = False
+    return
+
+
 class NativeScalerWithGradNormCount:
     state_dict_key = "amp_scaler"
 
@@ -307,9 +314,11 @@ def save_model(args, epoch, model, model_without_ddp, optimizer, loss_scaler):
             }
 
             save_on_master(to_save, checkpoint_path)
+        print(f"{checkpoint_paths} saved into {output_dir} with optimizer")
     else:
         client_state = {'epoch': epoch}
         model.save_checkpoint(save_dir=args.output_dir, tag="checkpoint-%s" % epoch_name, client_state=client_state)
+        print(f"{epoch_name} saved into {args.output_dir}")
 
 
 def load_model(args, model_without_ddp, optimizer, loss_scaler):

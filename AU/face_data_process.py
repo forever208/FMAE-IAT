@@ -221,6 +221,24 @@ def folder_datasets_2_lmdb_datasets(root_folder=None, output_lmdb=None):
     print(f"total {total_images} images in {root_folder}")
 
 
+def jpg_img_coding():
+    import jpeglib
+
+    img = jpeglib.read_dct('city.jpg')
+    mask = np.zeros((8, 8), dtype='int8')
+    for i in range(8):
+        for j in range(8):
+            if i+j < 5:
+                mask[i, j] = 1
+
+    img.Y *= mask
+    img.Cb *= mask
+    img.Cr *= mask
+
+    img.write_dct('output.jpeg')
+
+
+
 if __name__ == "__main__":
     # read_MS_Celeb_1M('/home/mang/Downloads/MS-Celeb-1M/data/croped_face_images/FaceImageCroppedWithOutAlignment.tsv',
     #                  '/home/mang/Downloads/MS-Celeb-1M/imgs')
@@ -229,5 +247,6 @@ if __name__ == "__main__":
     # resize_dataset('/home/mang/Downloads/AffectNet_frames')
     # folder_datasets_2_npz_datasets(root_folder='/home/mang/Downloads/face_datasets/celeba',
     #                                npz_folder='/home/mang/Downloads/face_datasets/celeba-npz')
-    folder_datasets_2_lmdb_datasets(root_folder='/home/mang/Downloads/face_datasets/MS-Celeb-1M',
-                                    output_lmdb='/home/mang/Downloads/face_datasets/MS-Celeb-1M.lmdb')
+    # folder_datasets_2_lmdb_datasets(root_folder='/home/mang/Downloads/face_datasets/MS-Celeb-1M',
+    #                                 output_lmdb='/home/mang/Downloads/face_datasets/MS-Celeb-1M.lmdb')
+    jpg_img_coding()

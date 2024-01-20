@@ -21,7 +21,7 @@ def parse_args():
     parser = argparse.ArgumentParser("Submitit for MAE pretrain", parents=[trainer_parser])
     parser.add_argument("--ngpus", default=4, type=int, help="Number of gpus to request on each node")
     parser.add_argument("--nodes", default=1, type=int, help="Number of nodes to request")
-    parser.add_argument("--timeout", default=4320, type=int, help="Duration of the job")
+    parser.add_argument("--timeout", default=7200, type=int, help="Max duration of the job (min)")
     parser.add_argument("--job_dir", default="", type=str, help="Job dir. Leave empty for automatic.")
 
     parser.add_argument("--partition", default="gpu", type=str, help="Partition where to submit")

@@ -34,7 +34,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
-    print_freq = 100  # print log every 20 steps
+    print_freq = 200  # print log every 20 steps
     accum_iter = args.accum_iter
     optimizer.zero_grad()
 
@@ -140,7 +140,7 @@ def AU_evaluate(data_loader, model, device):
     all_preds = []
     all_targets = []
 
-    for batch in metric_logger.log_every(data_loader, 100, header):
+    for batch in metric_logger.log_every(data_loader, 200, header):
         images = batch[0]
         target = batch[-1]
         images = images.to(device, non_blocking=True)
@@ -193,6 +193,18 @@ def AU_evaluate(data_loader, model, device):
     # avg_best_f1 = np.max(f1_score_arr, axis=0)
     # print(f"f1_mean: {avg_best_f1.mean()}, best_f1_scores: {avg_best_f1}")
 
+    # all AUs use 0.5 threshold
+    threshold = 0.5
+    y_pred = np.zeros(y_probs.shape)
+    y_pred[np.where(y_probs >= threshold)] = 1
+
+    # Compute F1 score for each class
+    f1_scores = []
+    for class_idx in range(y_true.shape[1]):
+        f1_scores.append(f1_score(y_true[:, class_idx], y_pred[:, class_idx]))
+    f1_score_arr = np.array(f1_scores)
+    print(f"f1_mean: {f1_score_arr.mean()} with threshold 0.5, f1_scores: {f1_score_arr}")
+
     # all AUs use the same threshold
     f1_score_ls = []
     for i in range(1, 100):
@@ -211,4 +223,4 @@ def AU_evaluate(data_loader, model, device):
     max_mean_row = f1_score_arr[max_f1_row_index]
     print(f"f1_mean: {max_mean_row.mean()} with threshold {(max_f1_row_index+1)/100}, best_f1_scores: {max_mean_row}")
 
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, max_mean_row.mean()
