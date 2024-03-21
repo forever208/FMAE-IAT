@@ -75,9 +75,41 @@ def split_BP4D_train_test(json_file=None, train_output_file=None, test_output_fi
     print(f"{test_counter} samples has been written into {train_output_file}")
 
 
+def random_split_train_test_for_ID(json_path=None):
+    def split_data(data, split_ratio=0.3):
+        num_samples = len(data)
+        test_size = int(num_samples * split_ratio)
+        random.shuffle(data)
+        return data[test_size:], data[:test_size]
+
+    # Load JSON file
+    with open(json_path, 'r') as f:
+        data = [json.loads(line) for line in f]
+
+    # Split data into training and test sets
+    train_set, test_set = split_data(data, split_ratio=0.3)
+
+    # Write the training set to a JSON file
+    with open('BP4D_train_for_ID.json', 'w') as f:
+        for sample in train_set:
+            json.dump(sample, f)
+            f.write('\n')
+
+    # Write the test set to a JSON file
+    with open('BP4D_test_for_ID.json', 'w') as f:
+        for sample in test_set:
+            json.dump(sample, f)
+            f.write('\n')
+
+    print("Training set size:", len(train_set))
+    print("Test set size:", len(test_set))
+
+
 if __name__ == "__main__":
     # generate_3_fold_subjects()
-    split_BP4D_train_test(json_file='./BP4D_labels.json',
-                          train_output_file='./BP4D_train3.json',
-                          test_output_file='./BP4D_test3.json',
-                          test_subjects=SUBJECTS_3)
+    # split_BP4D_train_test(json_file='./BP4D_labels.json',
+    #                       train_output_file='./BP4D_train3.json',
+    #                       test_output_file='./BP4D_test3.json',
+    #                       test_subjects=SUBJECTS_3)
+    random_split_train_test_for_ID(json_path='./BP4D_all.json')
+

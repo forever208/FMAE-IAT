@@ -117,6 +117,8 @@ def evaluate(data_loader, model, device):
             output = model(images)
             loss = criterion(output, target)
 
+        if len(output.shape) == len(target.shape):
+            target = torch.argmax(target, dim=1)
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
 
         batch_size = images.shape[0]

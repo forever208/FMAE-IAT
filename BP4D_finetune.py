@@ -33,7 +33,7 @@ from util.datasets import build_AU_dataset
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 import models_vit
-from engine_finetune import train_one_epoch, AU_evaluate
+from engine_finetune import train_one_epoch, AU_evaluate, evaluate
 
 
 def get_args_parser():
@@ -222,12 +222,12 @@ def main(args):
 
         # load pre-trained model
         msg = model.load_state_dict(checkpoint_model, strict=False)
-        print(msg)
+        print(f"compatibility info: {msg}" )
 
-        if args.global_pool:
-            assert set(msg.missing_keys) == {'head.weight', 'head.bias', 'fc_norm.weight', 'fc_norm.bias'}
-        else:
-            assert set(msg.missing_keys) == {'head.weight', 'head.bias'}
+        # if args.global_pool:
+        #     assert set(msg.missing_keys) == {'head.weight', 'head.bias', 'fc_norm.weight', 'fc_norm.bias'}
+        # else:
+        #     assert set(msg.missing_keys) == {'head.weight', 'head.bias'}
 
         # manually initialize fc layer
         trunc_normal_(model.head.weight, std=2e-5)
@@ -235,7 +235,7 @@ def main(args):
     model.to(device)
     model_without_ddp = model
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print("Model = %s" % str(model_without_ddp))
+    # print("Model = %s" % str(model_without_ddp))
     print('number of params (M): %.2f' % (n_parameters / 1.e6))
 
     # learning rate
@@ -296,15 +296,15 @@ def main(args):
         #     )
 
         # evaluation
-        test_stats = AU_evaluate(data_loader_val, model, device)
-        # print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
-        # max_accuracy = max(max_accuracy, test_stats["acc1"])
-        # print(f'Max accuracy: {max_accuracy:.2f}%')
+        test_stats = evaluate(data_loader_val, model, device)
+        print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
+        max_accuracy = max(max_accuracy, test_stats["acc1"])
+        print(f'Max accuracy: {max_accuracy:.2f}%')
 
-        # if log_writer is not None:
-        #     log_writer.add_scalar('perf/test_acc1', test_stats['acc1'], epoch)
-        #     log_writer.add_scalar('perf/test_acc5', test_stats['acc5'], epoch)
-        #     log_writer.add_scalar('perf/test_loss', test_stats['loss'], epoch)
+        if log_writer is not None:
+            log_writer.add_scalar('perf/test_acc1', test_stats['acc1'], epoch)
+            log_writer.add_scalar('perf/test_acc5', test_stats['acc5'], epoch)
+            log_writer.add_scalar('perf/test_loss', test_stats['loss'], epoch)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                         **{f'test_{k}': v for k, v in test_stats.items()},
