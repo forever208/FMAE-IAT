@@ -34,7 +34,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
-    print_freq = 100  # print log every 20 steps
+    print_freq = 200  # print log every 20 steps
     accum_iter = args.accum_iter
     optimizer.zero_grad()
 
@@ -47,15 +47,18 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
             lr_sched.adjust_learning_rate(optimizer, data_iter_step / len(data_loader) + epoch, args)
 
         samples = samples.to(device, non_blocking=True)
-        targets = targets.to(device, non_blocking=True)
+        targets[0] = targets[0].to(device, non_blocking=True)
+        targets[1] = targets[1].to(device, non_blocking=True)
 
         if mixup_fn is not None:
             samples, targets = mixup_fn(samples, targets)
 
         with torch.cuda.amp.autocast():
             outputs = model(samples)
-            loss = criterion(outputs, targets)
-        loss_value = loss.item()
+            AU_loss = criterion(outputs[0], targets[0])
+            ID_loss = criterion(outputs[1], targets[1])
+        loss_value = AU_loss.item() + ID_loss.item()
+        loss = AU_loss + ID_loss
 
         # handle nan loss
         if not math.isfinite(loss_value):
@@ -98,7 +101,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 @torch.no_grad()
 def evaluate(data_loader, model, device):
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
 
     metric_logger = misc.MetricLogger(delimiter="  ")
     header = 'Test:'
@@ -106,20 +109,20 @@ def evaluate(data_loader, model, device):
     # switch to evaluation mode
     model.eval()
 
-    for batch in metric_logger.log_every(data_loader, 10, header):
+    for batch in metric_logger.log_every(data_loader, 200, header):
         images = batch[0]
-        target = batch[-1]
+        target = batch[-1][1]
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
 
         # compute output
         with torch.cuda.amp.autocast():
             output = model(images)
-            loss = criterion(output, target)
+            loss = criterion(output[1], target)
 
-        if len(output.shape) == len(target.shape):
+        if len(output[1].shape) == len(target.shape):
             target = torch.argmax(target, dim=1)
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        acc1, acc5 = accuracy(output[1], target, topk=(1, 5))
 
         batch_size = images.shape[0]
         metric_logger.update(loss=loss.item())
@@ -142,21 +145,21 @@ def AU_evaluate(data_loader, model, device):
     all_preds = []
     all_targets = []
 
-    for batch in metric_logger.log_every(data_loader, 100, header):
+    for batch in metric_logger.log_every(data_loader, 200, header):
         images = batch[0]
-        target = batch[-1]
+        target = batch[-1][0]
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)  # 2D tensor (batch, 12)
 
         # compute loss
         with torch.cuda.amp.autocast():
             output = model(images)  # 2D tensor (batch, 12)
-            loss = criterion(output, target)
+            loss = criterion(output[0], target)
         metric_logger.update(loss=loss.item())
 
         # for f1 computation
         sigmoid = torch.nn.Sigmoid()
-        probs = sigmoid(output)
+        probs = sigmoid(output[0])
         all_preds.append(probs.detach().cpu().numpy())
         all_targets.append(target.detach().cpu().numpy())
 
@@ -195,6 +198,18 @@ def AU_evaluate(data_loader, model, device):
     # avg_best_f1 = np.max(f1_score_arr, axis=0)
     # print(f"f1_mean: {avg_best_f1.mean()}, best_f1_scores: {avg_best_f1}")
 
+    # all AUs use 0.5 threshold
+    threshold = 0.5
+    y_pred = np.zeros(y_probs.shape)
+    y_pred[np.where(y_probs >= threshold)] = 1
+
+    # Compute F1 score for each class
+    f1_scores = []
+    for class_idx in range(y_true.shape[1]):
+        f1_scores.append(f1_score(y_true[:, class_idx], y_pred[:, class_idx]))
+    f1_score_arr = np.array(f1_scores)
+    print(f"f1_mean: {f1_score_arr.mean()} with threshold 0.5, f1_scores: {f1_score_arr}")
+
     # all AUs use the same threshold
     f1_score_ls = []
     for i in range(1, 100):
@@ -213,4 +228,4 @@ def AU_evaluate(data_loader, model, device):
     max_mean_row = f1_score_arr[max_f1_row_index]
     print(f"f1_mean: {max_mean_row.mean()} with threshold {(max_f1_row_index+1)/100}, best_f1_scores: {max_mean_row}")
 
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, max_mean_row.mean()

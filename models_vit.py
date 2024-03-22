@@ -13,14 +13,25 @@ from functools import partial
 
 import torch
 import torch.nn as nn
+from torch.autograd import Function
 
 import timm.models.vision_transformer
+
+
+class GradReverse(Function):
+    @staticmethod
+    def forward(ctx, x, lambd, **kwargs: None):
+        ctx.lambd = lambd
+        return x.view_as(x)
+
+    def backward(ctx, grad_output):
+        return grad_output * -ctx.lambd, None
 
 
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
     """ Vision Transformer with support for global average pooling
     """
-    def __init__(self, global_pool=False, **kwargs):
+    def __init__(self, global_pool=False, grad_reverse=None, **kwargs):
         super(VisionTransformer, self).__init__(**kwargs)
 
         self.global_pool = global_pool
@@ -32,7 +43,10 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
             del self.norm  # remove the original norm
 
         # Classifier head
-        self.head = nn.Linear(kwargs['embed_dim'], kwargs['num_classes']) if kwargs['num_classes'] > 0 else nn.Identity()
+        self.AU_head = nn.Linear(kwargs['embed_dim'], 12)
+        self.ID_head = nn.Linear(kwargs['embed_dim'], 41)
+        self.grad_reverse = grad_reverse  # default is 1.0
+        print(f"using ID adversarial: {self.grad_reverse}" )
 
     def forward_features(self, x):
         B = x.shape[0]
@@ -56,10 +70,12 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         return outcome
 
     def forward(self, x):
-        with torch.no_grad():
-            x = self.forward_features(x)
-        x = self.head(x)
-        return x
+        x = self.forward_features(x)
+        AU_pred = self.AU_head(x)
+
+        x = GradReverse.apply(x, self.grad_reverse)
+        ID_pred = self.ID_head(x)
+        return (AU_pred, ID_pred)
 
 
 def vit_base_patch16(**kwargs):

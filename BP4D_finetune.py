@@ -62,6 +62,7 @@ def get_args_parser():
                         help='Clip gradient norm (default: None, no clipping)')
     parser.add_argument('--weight_decay', type=float, default=0.05, help='weight decay (default: 0.05)')
     parser.add_argument('--layer_decay', type=float, default=0.65, help='layer-wise lr decay from ELECTRA/BEiT')
+    parser.add_argument('--grad_reverse', type=float, default=1.0, help='scaler for ID grad_reverse')
 
     # Augmentation parameters
     parser.add_argument('--color_jitter', type=float, default=None, metavar='PCT',
@@ -204,6 +205,7 @@ def main(args):
         num_classes=args.nb_classes,
         drop_path_rate=args.drop_path,
         global_pool=args.global_pool,
+        grad_reverse=args.grad_reverse,
     )
 
     # load model weights
@@ -275,6 +277,8 @@ def main(args):
     print(f"Start training for {args.epochs} epochs")
     start_time = time.time()
     max_accuracy = 0.0
+    max_f1 = 0
+    best_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             data_loader_train.sampler.set_epoch(epoch)
@@ -296,26 +300,32 @@ def main(args):
         #     )
 
         # evaluation
-        test_stats = evaluate(data_loader_val, model, device)
-        print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
-        max_accuracy = max(max_accuracy, test_stats["acc1"])
-        print(f'Max accuracy: {max_accuracy:.2f}%')
+        # test_stats = evaluate(data_loader_val, model, device)
+        test_stats, f1_mean = AU_evaluate(data_loader_val, model, device)
+        if f1_mean > max_f1:
+            max_f1 = f1_mean
+            best_epoch = epoch
+        print(f"best performance is f1: {max_f1} at epoch {best_epoch}")
 
-        if log_writer is not None:
-            log_writer.add_scalar('perf/test_acc1', test_stats['acc1'], epoch)
-            log_writer.add_scalar('perf/test_acc5', test_stats['acc5'], epoch)
-            log_writer.add_scalar('perf/test_loss', test_stats['loss'], epoch)
-
-        log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                        **{f'test_{k}': v for k, v in test_stats.items()},
-                        'epoch': epoch,
-                        'n_parameters': n_parameters}
-
-        if args.output_dir and misc.is_main_process():
-            if log_writer is not None:
-                log_writer.flush()
-            with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
-                f.write(json.dumps(log_stats) + "\n")
+        # print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
+        # max_accuracy = max(max_accuracy, test_stats["acc1"])
+        # print(f'Max accuracy: {max_accuracy:.2f}%')
+        #
+        # if log_writer is not None:
+        #     log_writer.add_scalar('perf/test_acc1', test_stats['acc1'], epoch)
+        #     log_writer.add_scalar('perf/test_acc5', test_stats['acc5'], epoch)
+        #     log_writer.add_scalar('perf/test_loss', test_stats['loss'], epoch)
+        #
+        # log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
+        #                 **{f'test_{k}': v for k, v in test_stats.items()},
+        #                 'epoch': epoch,
+        #                 'n_parameters': n_parameters}
+        #
+        # if args.output_dir and misc.is_main_process():
+        #     if log_writer is not None:
+        #         log_writer.flush()
+        #     with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
+        #         f.write(json.dumps(log_stats) + "\n")
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
