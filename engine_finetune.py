@@ -39,6 +39,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     optimizer.zero_grad()
 
     if log_writer is not None:
+        print(f" ")
         print('log_dir: {}'.format(log_writer.log_dir))
 
     for data_iter_step, (samples, targets) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
@@ -162,7 +163,6 @@ def AU_evaluate(data_loader, model, device):
     metric_logger.synchronize_between_processes()
     print('* loss {losses.global_avg:.3f}'.format(losses=metric_logger.loss))
 
-    # compute f1
     y_probs = np.concatenate([arr for arr in all_preds], axis=0)
     y_true = np.concatenate([arr for arr in all_targets], axis=0)
 
@@ -193,28 +193,25 @@ def AU_evaluate(data_loader, model, device):
     # avg_best_f1 = np.max(f1_score_arr, axis=0)
     # print(f"f1_mean: {avg_best_f1.mean()}, best_f1_scores: {avg_best_f1}")
 
-    # all AUs use 0.5 threshold
+    # F1 score at 0.5
     threshold = 0.5
     y_pred = np.zeros(y_probs.shape)
     y_pred[np.where(y_probs >= threshold)] = 1
-
-    # Compute F1 score for each class
     f1_scores = []
-    for class_idx in range(y_true.shape[1]):
+    for class_idx in range(y_true.shape[1]):  # Compute F1 score for each class
         f1_scores.append(f1_score(y_true[:, class_idx], y_pred[:, class_idx]))
     f1_score_arr = np.array(f1_scores)
     print(f"f1_mean: {f1_score_arr.mean()} with threshold 0.5, f1_scores: {f1_score_arr}")
 
-    # all AUs use the same threshold
+    # F1 score under different thresholds
     f1_score_ls = []
     for i in range(1, 100):
         threshold = i * 0.01
         y_pred = np.zeros(y_probs.shape)
         y_pred[np.where(y_probs >= threshold)] = 1
 
-        # Compute F1 score for each class
         f1_scores = []
-        for class_idx in range(y_true.shape[1]):
+        for class_idx in range(y_true.shape[1]):  # Compute F1 score for each class
             f1_scores.append(f1_score(y_true[:, class_idx], y_pred[:, class_idx]))
         f1_score_ls.append(f1_scores)
 
@@ -223,4 +220,12 @@ def AU_evaluate(data_loader, model, device):
     max_mean_row = f1_score_arr[max_f1_row_index]
     print(f"f1_mean: {max_mean_row.mean()} with threshold {(max_f1_row_index+1)/100}, best_f1_scores: {max_mean_row}")
 
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, max_mean_row.mean()
+    # AUC
+    auc_scores = []
+    for i in range(y_true.shape[1]):  # Calculate AUC for each class
+        auc = roc_auc_score(y_true[:, i], y_probs[:, i])
+        auc_scores.append(auc)
+    mean_auc = np.mean(auc_scores)
+    print(f"AUC_mean: {mean_auc}, each AUC: {auc_scores}")
+
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, max_mean_row.mean(), mean_auc

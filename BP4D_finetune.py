@@ -276,6 +276,7 @@ def main(args):
     start_time = time.time()
     max_accuracy = 0.0
     max_f1 = 0
+    max_auc = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             data_loader_train.sampler.set_epoch(epoch)
@@ -297,11 +298,15 @@ def main(args):
         #     )
 
         # evaluation
-        test_stats, f1_mean = AU_evaluate(data_loader_val, model, device)
+        test_stats, f1_mean, auc_mean = AU_evaluate(data_loader_val, model, device)
         if f1_mean > max_f1:
             max_f1 = f1_mean
-            best_epoch = epoch
-        print(f"best performance is f1: {max_f1} at epoch {best_epoch}")
+            best_f1_epoch = epoch
+        if auc_mean > max_auc:
+            max_auc = auc_mean
+            best_auc_epoch = epoch
+        print(f"best F1: {max_f1} at epoch {best_f1_epoch}")
+        print(f"best AUC: {max_auc} at epoch {best_auc_epoch}")
 
         # print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
         # max_accuracy = max(max_accuracy, test_stats["acc1"])
