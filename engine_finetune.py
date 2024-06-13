@@ -56,9 +56,17 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         with torch.cuda.amp.autocast():
             outputs = model(samples)
             AU_loss = criterion(outputs[0], targets[0])
-            ID_loss = criterion(outputs[1], targets[1])
-        loss_value = AU_loss.item() + ID_loss.item()
-        loss = AU_loss + ID_loss
+            if len(outputs) == 2:
+                ID_loss = criterion(outputs[1], targets[1])
+
+        if len(outputs) == 2:
+            loss_value = AU_loss.item() + ID_loss.item()
+            loss = AU_loss + ID_loss
+        elif len(outputs) == 1:
+            loss_value = AU_loss.item()
+            loss = AU_loss
+        else:
+            raise ValueError(f"not implemented")
 
         # handle nan loss
         if not math.isfinite(loss_value):

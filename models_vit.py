@@ -44,9 +44,12 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 
         # Classifier head
         self.AU_head = nn.Linear(kwargs['embed_dim'], 12)
-        self.ID_head = nn.Linear(kwargs['embed_dim'], 41)
         self.grad_reverse = grad_reverse  # default is 1.0
         print(f"using ID adversarial: {self.grad_reverse}" )
+        if not self.grad_reverse == 0:
+            self.ID_head = nn.Linear(kwargs['embed_dim'], 41)
+            print(f"activate ID adver head")
+
 
     def forward_features(self, x):
         B = x.shape[0]
@@ -73,9 +76,12 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         x = self.forward_features(x)
         AU_pred = self.AU_head(x)
 
-        x = GradReverse.apply(x, self.grad_reverse)
-        ID_pred = self.ID_head(x)
-        return (AU_pred, ID_pred)
+        if not self.grad_reverse == 0:
+            x = GradReverse.apply(x, self.grad_reverse)
+            ID_pred = self.ID_head(x)
+            return (AU_pred, ID_pred)
+        else:
+            return (AU_pred,)
 
 
 def vit_small_patch16(**kwargs):
