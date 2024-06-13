@@ -247,6 +247,6 @@ if __name__ == "__main__":
     # resize_dataset('/home/mang/Downloads/AffectNet_frames')
     # folder_datasets_2_npz_datasets(root_folder='/home/mang/Downloads/face_datasets/celeba',
     #                                npz_folder='/home/mang/Downloads/face_datasets/celeba-npz')
-    # folder_datasets_2_lmdb_datasets(root_folder='/home/mang/Downloads/face_datasets/MS-Celeb-1M',
-    #                                 output_lmdb='/home/mang/Downloads/face_datasets/MS-Celeb-1M.lmdb')
-    jpg_img_coding()
+    folder_datasets_2_lmdb_datasets(root_folder='/home/mang/Downloads/face_datasets/MS-Celeb-1M',
+                                    output_lmdb='/home/mang/Downloads/face_datasets/MS-Celeb-1M.lmdb')
+    # jpg_img_coding()
