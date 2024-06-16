@@ -15,9 +15,28 @@ This is a PyTorch/GPU re-implementation of the paper [Masked Autoencoders Are Sc
 }
 ```
 
-* The original implementation was in TensorFlow+TPU. This re-implementation is in PyTorch+GPU.
+### Installation
+for AU finetune and pretraining, we use pytorch 1.8.0
+```shell
+conda craete -n mae python==3.8
+conda activate mae
+conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio==0.8.0 cudatoolkit=11.1 -c pytorch -c conda-forge
+pip install timm==0.3.2
+pip install tensorboard
+pip install lmdb
+pip install scikit-learn
+```
 
-* This repo is a modification on the [DeiT repo](https://github.com/facebookresearch/deit). Installation and preparation follow that repo.
+for ID linear probig, we use pytorch 1.11.0 (1.8.0 has an issue with AdamW when freezing some layers)
+```shell
+conda craete -n mae_lb python==3.9
+conda activate mae_lb
+conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch
+pip install timm==0.3.2
+pip install tensorboard
+pip install lmdb
+pip install scikit-learn
+```
 
 * This repo is based on [`timm==0.3.2`](https://github.com/rwightman/pytorch-image-models), for which a [fix](https://github.com/rwightman/pytorch-image-models/issues/420#issuecomment-776459842) is needed to work with PyTorch 1.8.1+.
 
