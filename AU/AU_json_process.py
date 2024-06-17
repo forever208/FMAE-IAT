@@ -5,6 +5,7 @@ import os
 import cv2
 import json
 import random
+from collections import defaultdict
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -75,34 +76,50 @@ def split_BP4D_train_test(json_file=None, train_output_file=None, test_output_fi
     print(f"{test_counter} samples has been written into {train_output_file}")
 
 
-def random_split_train_test_for_ID(json_path=None):
-    def split_data(data, split_ratio=0.3):
-        num_samples = len(data)
-        test_size = int(num_samples * split_ratio)
-        random.shuffle(data)
-        return data[test_size:], data[:test_size]
+def extract_100_samples_for_each_subject(input_file=None, train_output_file=None, test_output_file=None):
+    # Read all lines from the file
+    with open(input_file, 'r') as file:
+        lines = file.readlines()
 
-    # Load JSON file
-    with open(json_path, 'r') as f:
-        data = [json.loads(line) for line in f]
+    # Shuffle the lines
+    random.shuffle(lines)
 
-    # Split data into training and test sets
-    train_set, test_set = split_data(data, split_ratio=0.3)
+    # Dictionary to hold up to 100 samples for each ID
+    samples_by_id = defaultdict(list)
 
-    # Write the training set to a JSON file
-    with open('BP4D_train_for_ID.json', 'w') as f:
-        for sample in train_set:
-            json.dump(sample, f)
-            f.write('\n')
+    # Process each line after shuffling
+    for line in lines:
+        # Convert line to dictionary
+        data = json.loads(line)
 
-    # Write the test set to a JSON file
-    with open('BP4D_test_for_ID.json', 'w') as f:
-        for sample in test_set:
-            json.dump(sample, f)
-            f.write('\n')
+        # Extract ID from img_path (assuming format 'ID/...')
+        person_id = data['img_path'].split('_')[0][1:]
 
-    print("Training set size:", len(train_set))
-    print("Test set size:", len(test_set))
+        # Store the data for this ID, but only up to 100 samples
+        if len(samples_by_id[person_id]) < 100:
+            samples_by_id[person_id].append(data)
+
+            # If 100 samples are collected for any ID, continue without adding more
+            if len(samples_by_id[person_id]) == 100:
+                if all(len(samples) == 100 for samples in samples_by_id.values()):
+                    break
+
+    # Open training and testing files to write line by line
+    with open(train_output_file, 'w') as train_file, open(test_output_file, 'w') as test_file:
+        # Split the samples into 70 train and 30 test for each ID
+        for person_id, samples in samples_by_id.items():
+            random.shuffle(samples)  # Shuffle to randomize which samples go into train/test
+            train_samples = samples[:70]  # First 70 for training
+            test_samples = samples[70:]  # Next 30 for testing
+
+            # Write training samples line by line
+            for sample in train_samples:
+                train_file.write(json.dumps(sample) + '\n')
+
+            # Write testing samples line by line
+            for sample in test_samples:
+                test_file.write(json.dumps(sample) + '\n')
+    print(f"created {train_output_file} and {test_output_file}")
 
 
 if __name__ == "__main__":
@@ -111,5 +128,7 @@ if __name__ == "__main__":
     #                       train_output_file='./BP4D_train3.json',
     #                       test_output_file='./BP4D_test3.json',
     #                       test_subjects=SUBJECTS_3)
-    random_split_train_test_for_ID(json_path='./BP4D_all.json')
+    extract_100_samples_for_each_subject(input_file='./BP4D_all.json',
+                                         train_output_file='./BP4D_ID_prob_train.json',
+                                         test_output_file='./BP4D_ID_prob_test.json')
 

@@ -143,11 +143,11 @@ class AUDataset(Dataset):
         print(f"dataset path: {self.root_path}")
         self.transform = transform
         # self.AUs = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
-        self.AUs = ['F001', 'F002', 'F003', 'F004', 'F005', 'F006', 'F007', 'F008', 'F009', 'F010',
-                    'F011', 'F012', 'F013', 'F014', 'F015', 'F016', 'F017', 'F018', 'F019', 'F020',
-                    'F021', 'F022', 'F023',
-                    'M001', 'M002', 'M003', 'M004', 'M005', 'M006', 'M007', 'M008', 'M009', 'M010',
-                    'M011', 'M012', 'M013', 'M014', 'M015', 'M016', 'M017', 'M018']
+        self.AUs = ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10',
+                    'F11', 'F12', 'F13', 'F14', 'F15', 'F16', 'F17', 'F18', 'F19', 'F20',
+                    'F21', 'F22', 'F23',
+                    'M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M08', 'M09', 'M10',
+                    'M11', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M18']
         self.label2idx = {label: idx for idx, label in enumerate(self.AUs)}
 
     def _load_data(self, json_file):
@@ -167,7 +167,7 @@ class AUDataset(Dataset):
 
         # Convert label indices to binary representation
         # AUs = self.data[idx]['AUs']  # e.g. [4, 10, 14]
-        AUs = self.data[idx]['img_path'][0:4]
+        AUs = self.data[idx]['img_path'][1:4]
 
         labels = torch.zeros(len(self.AUs))  # 12 classes
         # for au in AUs:

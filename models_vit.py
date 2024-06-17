@@ -32,7 +32,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
             del self.norm  # remove the original norm
 
         # Classifier head
-        self.head = nn.Linear(kwargs['embed_dim'], kwargs['num_classes']) if kwargs['num_classes'] > 0 else nn.Identity()
+        self.head = nn.Linear(kwargs['embed_dim'], kwargs['num_classes'], bias=False)
 
     def forward_features(self, x):
         B = x.shape[0]
