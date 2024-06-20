@@ -175,9 +175,8 @@ def AU_evaluate(data_loader, model, device):
     metric_logger.synchronize_between_processes()
     print('* loss {losses.global_avg:.3f}'.format(losses=metric_logger.loss))
 
-    y_probs = np.concatenate([arr for arr in all_preds], axis=0)
-    y_true = np.concatenate([arr for arr in all_targets], axis=0)
-
+    y_probs = np.concatenate([arr for arr in all_preds], axis=0)  # (samples, 12)
+    y_true = np.concatenate([arr for arr in all_targets], axis=0)  # (samples, 12)
     # AP = []
     # for cls in range(y_true.shape[1]):
     #     AP.append(average_precision_score(y_true[:, cls], y_probs[:, cls]))
@@ -235,8 +234,11 @@ def AU_evaluate(data_loader, model, device):
     # AUC
     auc_scores = []
     for i in range(y_true.shape[1]):  # Calculate AUC for each class
-        auc = roc_auc_score(y_true[:, i], y_probs[:, i])
-        auc_scores.append(auc)
+        try:
+            auc = roc_auc_score(y_true[:, i], y_probs[:, i])
+            auc_scores.append(auc)
+        except ValueError as e:
+            print(f"Error: for the {i}th AU: {e}")
     mean_auc = np.mean(auc_scores)
     print(f"AUC_mean: {mean_auc}, each AUC: {auc_scores}")
 

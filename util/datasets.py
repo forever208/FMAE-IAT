@@ -97,10 +97,17 @@ class CustomDataset(Dataset):
         return img
 
 
-def build_AU_dataset(json_path, is_train, args):
+def BP4D_AU_dataset(json_path, is_train, args):
     transform = build_AU_transform(is_train, args)
-    dataset = AUDataset(args.root_path, json_path, transform=transform)
+    dataset = BP4D_dataset(args.root_path, json_path, transform=transform)
+    print(dataset)
+    return dataset
 
+
+def BP4D_plus_AU_dataset(json_path, is_train, args):
+    transform = build_AU_transform(is_train, args)
+    dataset = BP4D_plus_dataset(args.root_path, json_path, transform=transform)
+    print(dataset)
     return dataset
 
 
@@ -131,7 +138,7 @@ def build_AU_transform(is_train, args):
              transforms.Normalize(mean, std)]
         )
 
-class AUDataset(Dataset):
+class BP4D_dataset(Dataset):
     """
     accept the json file to construct the dataset.
     Each line of the json file contains the image path and the AU labels.
@@ -174,6 +181,70 @@ class AUDataset(Dataset):
         ID_labels = torch.zeros(len(self.IDs))  # 41 classes
 
         for au in AUs:
+            if au == 999:  # 999 means non-AU
+                continue
+            AU_labels[self.AU_label2idx[au]] = 1
+
+        ID_labels[self.ID_label2idx[ID]] = 1
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, (AU_labels, ID_labels)
+
+
+class BP4D_plus_dataset(Dataset):
+    """
+    accept the json file to construct the dataset.
+    Each line of the json file contains the image path and the AU labels.
+    """
+    def __init__(self, root_path, json_file, transform=None):
+        self.data = self._load_data(json_file)
+        print(f"building dataset from: {json_file}")
+        self.root_path = root_path
+        print(f"dataset path: {self.root_path}")
+        self.transform = transform
+        self.AUs = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
+        self.IDs = ['F015', 'M005', 'F057', 'M009', 'M053', 'F078', 'F081', 'M047', 'F004', 'M026', 'M056', 'F058',
+                    'F007', 'M031', 'M052', 'F041', 'F014', 'F074', 'M039', 'F044', 'F056', 'F064', 'F048', 'M040',
+                    'F024', 'F076', 'M030', 'F016', 'F035', 'F062', 'M014', 'F033', 'M058', 'M055', 'M006', 'M048',
+                    'F032', 'M022', 'M036', 'M017', 'F053', 'F002', 'F018', 'F067', 'F050', 'F034', 'F027', 'M001',
+                    'F029', 'F012', 'F010', 'M044', 'F079', 'M013', 'M043', 'F059', 'M050', 'M023', 'M008', 'F070',
+                    'F011', 'F030', 'F073', 'F069', 'M041', 'F020', 'M054', 'F040', 'M024', 'M034', 'M037', 'F025',
+                    'F008', 'F060', 'F022', 'M045', 'M007', 'M015', 'M042', 'M016', 'M038', 'M057', 'F051', 'F009',
+                    'F082', 'M049', 'M019', 'F047', 'F054', 'M028', 'F075', 'F042', 'M018', 'F017', 'M003', 'F055',
+                    'F046', 'F077', 'F043', 'F065', 'F023', 'F052', 'M012', 'F005', 'M010', 'F013', 'M032', 'M004',
+                    'F037', 'F045', 'M046', 'F021', 'M027', 'M051', 'F019', 'F003', 'F068', 'M029', 'M025', 'F028',
+                    'M021', 'M020', 'F036', 'F031', 'M002', 'M011', 'F080', 'F066', 'F071', 'F038', 'M035', 'F063',
+                    'F026', 'M033', 'F072', 'F049', 'F061', 'F006', 'F001', 'F039']
+        self.AU_label2idx = {label: idx for idx, label in enumerate(self.AUs)}
+        self.ID_label2idx = {label: idx for idx, label in enumerate(self.IDs)}
+
+    def _load_data(self, json_file):
+        dict_list = []
+        with open(json_file, 'r') as file:
+            for line in file:
+                loaded_dict = json.loads(line)
+                dict_list.append(loaded_dict)
+        return dict_list
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        image_path = self.root_path + self.data[idx]['img_path']
+        image = Image.open(image_path).convert('RGB')
+
+        # Convert label indices to binary representation
+        AUs = self.data[idx]['AUs']  # e.g. [4, 10, 14]
+        ID = self.data[idx]['img_path'][0:4]
+
+        AU_labels = torch.zeros(len(self.AUs))  # 12 classes
+        ID_labels = torch.zeros(len(self.IDs))  # 140 classes
+
+        for au in AUs:
+            if au == 999:  # 999 means non-AU
+                continue
             AU_labels[self.AU_label2idx[au]] = 1
 
         ID_labels[self.ID_label2idx[ID]] = 1
