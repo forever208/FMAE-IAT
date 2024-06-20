@@ -12,7 +12,7 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def video_csv_to_imgs_json(csv_dir=None):
+def video_csv_to_imgs_json(csv_dir=None, video_dir=None, output_img_dir=None, output_json_path=None):
     """
     extract valid AU frames from the video based on csv annotations
     save img_path and AU labels into a single json file
@@ -25,7 +25,8 @@ def video_csv_to_imgs_json(csv_dir=None):
         csv_path = f"{csv_dir}/{csv_file}"
         print(f"processing {csv_path}...")
         frame_inds = []
-        AUs = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
+        AUs =              [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23, 24]
+        AU_column_in_csv = [1, 2, 3, 5, 6, 8,  10, 12, 13, 15, 20, 21]
         frame_and_AUs = {}  # dict label for each csv file, e.g. {'frame_ind': [1, 2, 4, 6, 7]}
 
         # read csv and extract the AU labels
@@ -35,8 +36,9 @@ def video_csv_to_imgs_json(csv_dir=None):
         for i in range(rows):
             frame = int(df.iloc[i, 0])  # the frame index
             VALID_FRAME = False
-            for au in AUs:
-                if int(df.iloc[i, au]) == 1:
+            for x, au in enumerate(AUs):
+                column_ind = AU_column_in_csv[x]
+                if int(df.iloc[i, column_ind]) == 1:
                     VALID_FRAME = True
                     if str(frame) in frame_and_AUs:
                         frame_and_AUs[str(frame)].append(au)
@@ -51,7 +53,7 @@ def video_csv_to_imgs_json(csv_dir=None):
         if len(frame_inds) > 0:
             # for each csv, read its video file
             video_file = csv_file.split('.')[0] + ".mp4"
-            video_path = "/home/mang/Downloads/BP4D+/raw_video/" + video_file
+            video_path = video_dir + video_file
             print(f"processing video: {video_path}")
             if os.path.exists(video_path):
                 cap = cv2.VideoCapture(video_path)
@@ -63,7 +65,7 @@ def video_csv_to_imgs_json(csv_dir=None):
                     exit()
 
                 # Create a folder to save the extracted frames
-                output_directory = "/home/mang/Downloads/BP4D+/BP4D_plus_valid/" + video_file[:-4]
+                output_directory = output_img_dir + video_file[:-4]
                 os.makedirs(output_directory, exist_ok=True)
 
                 # Loop through the frames in the video, extract the specified frames, and save them as images
@@ -101,13 +103,12 @@ def video_csv_to_imgs_json(csv_dir=None):
         # print(json_labels_ls)
 
     # save image_path and AUs labels into json
-    json_filename = 'BP4D_plus_all.json'
-    with open(json_filename, 'w') as f:
+    with open(output_json_path, 'w') as f:
         for each_dict in json_labels_ls:
             json.dump(each_dict, f)
             f.write('\n')
-    print(f"Frame information saved to {json_filename}")
-    print(f"total number of images: {num_imgs}")  # 165677
+    print(f"Frame information saved to {output_json_path}")
+    print(f"total number of images: {num_imgs}")  # 167109
 
 
 def extract_subjests(csv_dir=None):
@@ -231,7 +232,10 @@ if __name__ == '__main__':
     # 4. generate 4 subject-exclusive folds
     # 5, split train-test
 
-    # video_csv_to_imgs_json(csv_dir='/home/mang/Downloads/AU_OCC')
+    # video_csv_to_imgs_json(csv_dir='/home/mang/Downloads/BP4D+/raw_csv/AU_OCC',
+    #                        video_dir="/home/mang/Downloads/BP4D+/raw_video/",
+    #                        output_img_dir="/home/mang/Downloads/BP4D+/BP4D_plus_valid/",
+    #                        output_json_path='BP4D_plus_all.json')
     # extract_subjests(csv_dir='/home/mang/Downloads/BP4D+/raw_csv/AU_OCC')
     # generate_4_fold_subjects()
     split_train_test_by_fold(json_file='BP4D_plus_all.json',

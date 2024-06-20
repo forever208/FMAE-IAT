@@ -31,7 +31,8 @@ class GradReverse(Function):
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
     """ Vision Transformer with support for global average pooling
     """
-    def __init__(self, global_pool=False, grad_reverse=None, **kwargs):
+
+    def __init__(self, global_pool=False, grad_reverse=0, num_subjects=0, **kwargs):
         super(VisionTransformer, self).__init__(**kwargs)
 
         self.global_pool = global_pool
@@ -46,8 +47,9 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         self.AU_head = nn.Linear(kwargs['embed_dim'], 12)
         self.grad_reverse = grad_reverse  # default is 1.0
         print(f"using ID adversarial: {self.grad_reverse}" )
+        print(f"num AUs: 12, num subjects: {num_subjects}")
         if not self.grad_reverse == 0:
-            self.ID_head = nn.Linear(kwargs['embed_dim'], 41)
+            self.ID_head = nn.Linear(kwargs['embed_dim'], num_subjects)
             print(f"activate ID adver head")
 
 

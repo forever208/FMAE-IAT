@@ -29,7 +29,7 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
 import util.lr_decay as lrd
 import util.misc as misc
-from util.datasets import BP4D_AU_dataset
+from util.datasets import BP4D_plus_AU_dataset
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 import models_vit
@@ -62,7 +62,7 @@ def get_args_parser():
                         help='Clip gradient norm (default: None, no clipping)')
     parser.add_argument('--weight_decay', type=float, default=0.05, help='weight decay (default: 0.05)')
     parser.add_argument('--layer_decay', type=float, default=0.65, help='layer-wise lr decay from ELECTRA/BEiT')
-    parser.add_argument('--grad_reverse', type=float, default=1.0, help='scaler for ID grad_reverse')
+    parser.add_argument('--grad_reverse', type=float, default=0, help='scaler for ID grad_reverse')
 
     # Augmentation parameters
     parser.add_argument('--color_jitter', type=float, default=None, metavar='PCT',
@@ -106,7 +106,8 @@ def get_args_parser():
     parser.add_argument('--root_path', default='/home/mang/Downloads/BP4D_no_crop/', type=str, help='dataset root path')
     parser.add_argument('--train_path', default='./AU/BP4D_train3.json', type=str, help='train json path')
     parser.add_argument('--test_path', default='./AU/BP4D_test3.json', type=str, help='test json path')
-    parser.add_argument('--nb_classes', default=12, type=int, help='number of the classification types')
+    parser.add_argument('--nb_classes', default=0, type=int, help='number of the classification types')
+    parser.add_argument('--nb_subjects', default=0, type=int, help='number of subjects in BP4D/BP4D+')
     parser.add_argument('--output_dir', default='./BP4D_exp', help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default='./BP4D_exp', help='path where to tensorboard log')
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
@@ -121,6 +122,8 @@ def get_args_parser():
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
     parser.add_argument('--no_pin_mem', action='store_false', dest='pin_mem')
     parser.set_defaults(pin_mem=True)
+    parser.add_argument('--save_ckpt', action='store_true', help='save ckpt during training.')
+    parser.set_defaults(save_ckpt=False)
 
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
@@ -144,8 +147,8 @@ def main(args):
     cudnn.benchmark = True
 
     # dataset and data_loder
-    dataset_train = BP4D_AU_dataset(args.train_path, is_train=True, args=args)
-    dataset_val = BP4D_AU_dataset(args.test_path, is_train=False, args=args)
+    dataset_train = BP4D_plus_AU_dataset(args.train_path, is_train=True, args=args)
+    dataset_val = BP4D_plus_AU_dataset(args.test_path, is_train=False, args=args)
 
     if True:  # args.distributed:
         num_tasks = misc.get_world_size()
@@ -203,6 +206,7 @@ def main(args):
     # model
     model = models_vit.__dict__[args.model](
         num_classes=args.nb_classes,
+        num_subjects=args.nb_subjects,
         drop_path_rate=args.drop_path,
         global_pool=args.global_pool,
         grad_reverse=args.grad_reverse,
@@ -293,11 +297,11 @@ def main(args):
         )
 
         # save ckpt
-        # if args.output_dir:
-        #     misc.save_model(
-        #         args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
-        #         loss_scaler=loss_scaler, epoch=epoch
-        #     )
+        if args.save_ckpt:
+            misc.save_model(
+                args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
+                loss_scaler=loss_scaler, epoch=epoch
+            )
 
         # evaluation
         # test_stats = evaluate(data_loader_val, model, device)
