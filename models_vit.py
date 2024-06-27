@@ -80,9 +80,9 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         if not self.grad_reverse == 0:
             x = GradReverse.apply(x, self.grad_reverse)
             ID_pred = self.ID_head(x)
-            return (AU_pred, ID_pred)
+            return AU_pred, ID_pred
         else:
-            return (AU_pred,)
+            return AU_pred
 
 
 def vit_small_patch16(**kwargs):

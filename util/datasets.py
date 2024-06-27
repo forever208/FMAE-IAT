@@ -108,6 +108,12 @@ def BP4D_plus_AU_dataset(json_path, is_train, args):
     dataset = BP4D_plus_dataset(args.root_path, json_path, transform=transform)
     return dataset
 
+def build_RAFDB_dataset(folder_path, is_train, args):
+    transform = build_AU_transform(is_train, args)
+    dataset = datasets.ImageFolder(root=folder_path, transform=transform)
+    print(dataset)
+    return dataset
+
 
 def build_AU_transform(is_train, args):
     mean = IMAGENET_DEFAULT_MEAN
