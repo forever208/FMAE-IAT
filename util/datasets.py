@@ -111,6 +111,13 @@ def BP4D_plus_AU_dataset(json_path, is_train, args):
     return dataset
 
 
+def DISFA_AU_dataset(json_path, is_train, args):
+    transform = build_AU_transform(is_train, args)
+    dataset = DISFA_dataset(args.root_path, json_path, transform=transform)
+    print(dataset)
+    return dataset
+
+
 def build_AU_transform(is_train, args):
     mean = IMAGENET_DEFAULT_MEAN
     std = IMAGENET_DEFAULT_STD
@@ -236,6 +243,57 @@ class BP4D_plus_dataset(Dataset):
         # Convert label indices to binary representation
         AUs = self.data[idx]['AUs']  # e.g. [4, 10, 14]
         ID = self.data[idx]['img_path'][0:4]
+
+        AU_labels = torch.zeros(len(self.AUs))  # 12 classes
+        ID_labels = torch.zeros(len(self.IDs))  # 140 classes
+
+        for au in AUs:
+            AU_labels[self.AU_label2idx[au]] = 1
+
+        ID_labels[self.ID_label2idx[ID]] = 1
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, (AU_labels, ID_labels)
+
+
+class DISFA_dataset(Dataset):
+    """
+    accept the json file to construct the dataset.
+    Each line of the json file contains the image path and the AU labels.
+    """
+    def __init__(self, root_path, json_file, transform=None):
+        self.data = self._load_data(json_file)
+        print(f"building dataset from: {json_file}")
+        self.root_path = root_path
+        print(f"dataset path: {self.root_path}")
+        self.transform = transform
+        self.AUs = [1, 2, 4, 6, 9, 12, 25, 26]
+        self.IDs = ['SN001', 'SN002', 'SN009', 'SN010', 'SN016', 'SN026', 'SN027', 'SN030', 'SN032',
+                    'SN006', 'SN011', 'SN012', 'SN013', 'SN018', 'SN021', 'SN024', 'SN028', 'SN031',
+                    'SN003', 'SN004', 'SN005', 'SN007', 'SN008', 'SN017', 'SN023', 'SN025', 'SN029']
+        self.AU_label2idx = {label: idx for idx, label in enumerate(self.AUs)}
+        self.ID_label2idx = {label: idx for idx, label in enumerate(self.IDs)}
+
+    def _load_data(self, json_file):
+        dict_list = []
+        with open(json_file, 'r') as file:
+            for line in file:
+                loaded_dict = json.loads(line)
+                dict_list.append(loaded_dict)
+        return dict_list
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        image_path = self.root_path + self.data[idx]['img_path']
+        image = Image.open(image_path).convert('RGB')
+
+        # Convert label indices to binary representation
+        AUs = self.data[idx]['AUs']  # e.g. [4, 10, 14]
+        ID = self.data[idx]['img_path'].split('/')[0][-5:]
 
         AU_labels = torch.zeros(len(self.AUs))  # 12 classes
         ID_labels = torch.zeros(len(self.IDs))  # 140 classes

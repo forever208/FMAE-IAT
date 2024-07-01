@@ -29,7 +29,7 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
 import util.lr_decay as lrd
 import util.misc as misc
-from util.datasets import BP4D_plus_AU_dataset
+from util.datasets import DISFA_AU_dataset
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 import models_vit
@@ -147,8 +147,8 @@ def main(args):
     cudnn.benchmark = True
 
     # dataset and data_loder
-    dataset_train = BP4D_plus_AU_dataset(args.train_path, is_train=True, args=args)
-    dataset_val = BP4D_plus_AU_dataset(args.test_path, is_train=False, args=args)
+    dataset_train = DISFA_AU_dataset(args.train_path, is_train=True, args=args)
+    dataset_val = DISFA_AU_dataset(args.test_path, is_train=False, args=args)
 
     if True:  # args.distributed:
         num_tasks = misc.get_world_size()
