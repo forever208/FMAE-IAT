@@ -296,9 +296,11 @@ class DISFA_dataset(Dataset):
         ID = self.data[idx]['img_path'].split('/')[0][-5:]
 
         AU_labels = torch.zeros(len(self.AUs))  # 12 classes
-        ID_labels = torch.zeros(len(self.IDs))  # 140 classes
+        ID_labels = torch.zeros(len(self.IDs))  # 27 classes
 
         for au in AUs:
+            if au == 999:  # 999 means non-AU
+                continue
             AU_labels[self.AU_label2idx[au]] = 1
 
         ID_labels[self.ID_label2idx[ID]] = 1
