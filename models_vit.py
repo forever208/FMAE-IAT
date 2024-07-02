@@ -43,7 +43,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
             del self.norm  # remove the original norm
 
         # Classifier head
-        self.AU_head = nn.Linear(kwargs['embed_dim'], num_classes)
+        self.head = nn.Linear(kwargs['embed_dim'], num_classes)
         self.grad_reverse = grad_reverse  # default is 1.0
         print(f"using ID adversarial: {self.grad_reverse}" )
         print(f"num classes: {num_classes}, num subjects: {num_subjects}")
@@ -75,7 +75,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 
     def forward(self, x):
         x = self.forward_features(x)
-        AU_pred = self.AU_head(x)
+        AU_pred = self.head(x)
 
         if not self.grad_reverse == 0:
             x = GradReverse.apply(x, self.grad_reverse)
