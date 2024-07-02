@@ -131,9 +131,9 @@ SUBJECTS_all = ['SN001', 'SN002', 'SN009', 'SN010', 'SN016', 'SN026', 'SN027', '
                 'SN003', 'SN004', 'SN005', 'SN007', 'SN008', 'SN017', 'SN023', 'SN025', 'SN029']
 
 # follow 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
-SUBJECTS_1 = ['SN002', 'SN032', 'SN023', 'SN008', 'SN027', 'SN018', 'SN026', 'SN003', 'SN011']
-SUBJECTS_2 = ['SN024', 'SN030', 'SN006', 'SN013', 'SN031', 'SN017', 'SN004', 'SN016', 'SN025']
-SUBJECTS_3 = ['SN007', 'SN021', 'SN001', 'SN012', 'SN009', 'SN029', 'SN005', 'SN028', 'SN010']
+SUBJECTS_1 = ['SN001', 'SN002', 'SN009', 'SN010', 'SN016', 'SN026', 'SN027', 'SN030', 'SN032']
+SUBJECTS_2 = ['SN006', 'SN011', 'SN012', 'SN013', 'SN018', 'SN021', 'SN024', 'SN028', 'SN031']
+SUBJECTS_3 = ['SN003', 'SN004', 'SN005', 'SN007', 'SN008', 'SN017', 'SN023', 'SN025', 'SN029']
 
 
 # random_1
@@ -225,6 +225,6 @@ if __name__ == '__main__':
     #                        output_json_path='DISFA_all.json')
     # generate_3_fold_subjects()
     split_train_test_by_fold(json_file='DISFA_all.json',
-                             train_output_file='DISFA_train1_rdm3.json',
-                             test_output_file='DISFA_test1_rdm3.json',
-                             test_subjects=SUBJECTS_1)
+                             train_output_file='DISFA_train3.json',
+                             test_output_file='DISFA_test3.json',
+                             test_subjects=SUBJECTS_3)
