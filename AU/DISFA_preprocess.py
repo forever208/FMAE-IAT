@@ -130,9 +130,47 @@ SUBJECTS_all = ['SN001', 'SN002', 'SN009', 'SN010', 'SN016', 'SN026', 'SN027', '
                 'SN006', 'SN011', 'SN012', 'SN013', 'SN018', 'SN021', 'SN024', 'SN028', 'SN031',
                 'SN003', 'SN004', 'SN005', 'SN007', 'SN008', 'SN017', 'SN023', 'SN025', 'SN029']
 
-SUBJECTS_1 = ['SN001', 'SN002', 'SN009', 'SN010', 'SN016', 'SN026', 'SN027', 'SN030', 'SN032']
-SUBJECTS_2 = ['SN006', 'SN011', 'SN012', 'SN013', 'SN018', 'SN021', 'SN024', 'SN028', 'SN031']
-SUBJECTS_3 = ['SN003', 'SN004', 'SN005', 'SN007', 'SN008', 'SN017', 'SN023', 'SN025', 'SN029']
+# follow 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
+SUBJECTS_1 = ['SN002', 'SN032', 'SN023', 'SN008', 'SN027', 'SN018', 'SN026', 'SN003', 'SN011']
+SUBJECTS_2 = ['SN024', 'SN030', 'SN006', 'SN013', 'SN031', 'SN017', 'SN004', 'SN016', 'SN025']
+SUBJECTS_3 = ['SN007', 'SN021', 'SN001', 'SN012', 'SN009', 'SN029', 'SN005', 'SN028', 'SN010']
+
+
+# random_1
+# SUBJECTS_1 = ['SN016', 'SN025', 'SN010', 'SN023', 'SN024', 'SN027', 'SN004', 'SN013', 'SN026']
+# SUBJECTS_2 = ['SN003', 'SN006', 'SN012', 'SN018', 'SN029', 'SN017', 'SN002', 'SN008', 'SN011']
+# SUBJECTS_3 = ['SN030', 'SN009', 'SN021', 'SN005', 'SN007', 'SN032', 'SN031', 'SN028', 'SN001']
+
+# random_2
+# SUBJECTS_1 = ['SN026', 'SN011', 'SN005', 'SN008', 'SN016', 'SN017', 'SN013', 'SN006', 'SN030']
+# SUBJECTS_2 = ['SN025', 'SN027', 'SN010', 'SN031', 'SN009', 'SN028', 'SN003', 'SN002', 'SN007']
+# SUBJECTS_3 = ['SN024', 'SN012', 'SN001', 'SN021', 'SN023', 'SN029', 'SN004', 'SN032', 'SN018']
+
+# random_3
+# SUBJECTS_1 = ['SN002', 'SN032', 'SN023', 'SN008', 'SN027', 'SN018', 'SN026', 'SN003', 'SN011']
+# SUBJECTS_2 = ['SN024', 'SN030', 'SN006', 'SN013', 'SN031', 'SN017', 'SN004', 'SN016', 'SN025']
+# SUBJECTS_3 = ['SN007', 'SN021', 'SN001', 'SN012', 'SN009', 'SN029', 'SN005', 'SN028', 'SN010']
+
+
+def generate_3_fold_subjects():
+    random.shuffle(SUBJECTS_all)
+
+    # Split the list into 4 sub-lists
+    sublist1 = random.sample(SUBJECTS_all, 9)
+    for element in sublist1:
+        SUBJECTS_all.remove(element)
+
+    sublist2 = random.sample(SUBJECTS_all, 9)
+    for element in sublist2:
+        SUBJECTS_all.remove(element)
+
+    sublist3 = SUBJECTS_all
+
+    # Print the sub-lists
+    print("Sublist 1:", sublist1)
+    print("Sublist 2:", sublist2)
+    print("Sublist 3:", sublist3)
+
 
 
 def split_train_test_by_fold(json_file=None, train_output_file=None, test_output_file=None, test_subjects=None):
@@ -185,7 +223,8 @@ if __name__ == '__main__':
     #                        video_dir="/home/mang/Downloads/DISFA/raw_videos/right",
     #                        output_img_dir="/home/mang/Downloads/DISFA/DISFA_valid",
     #                        output_json_path='DISFA_all.json')
+    # generate_3_fold_subjects()
     split_train_test_by_fold(json_file='DISFA_all.json',
-                             train_output_file='DISFA_train2.json',
-                             test_output_file='DISFA_test2.json',
-                             test_subjects=SUBJECTS_2)
+                             train_output_file='DISFA_train1_rdm3.json',
+                             test_output_file='DISFA_test1_rdm3.json',
+                             test_subjects=SUBJECTS_1)
