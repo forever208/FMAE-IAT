@@ -106,7 +106,8 @@ def get_args_parser():
     parser.add_argument('--root_path', default='/home/mang/Downloads/BP4D_no_crop/', type=str, help='dataset root path')
     parser.add_argument('--train_path', default='./AU/BP4D_train3.json', type=str, help='train json path')
     parser.add_argument('--test_path', default='./AU/BP4D_test3.json', type=str, help='test json path')
-    parser.add_argument('--nb_classes', default=12, type=int, help='number of the classification types')
+    parser.add_argument('--nb_classes', default=0, type=int, help='number of the classification types')
+    parser.add_argument('--nb_subjects', default=0, type=int, help='number of subjects in BP4D/BP4D+')
     parser.add_argument('--output_dir', default='./BP4D_exp', help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default='./BP4D_exp', help='path where to tensorboard log')
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
@@ -203,6 +204,7 @@ def main(args):
     # model
     model = models_vit.__dict__[args.model](
         num_classes=args.nb_classes,
+        num_subjects=args.nb_subjects,
         drop_path_rate=args.drop_path,
         global_pool=args.global_pool,
         grad_reverse=args.grad_reverse,
