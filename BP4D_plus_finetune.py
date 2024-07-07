@@ -122,8 +122,7 @@ def get_args_parser():
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
     parser.add_argument('--no_pin_mem', action='store_false', dest='pin_mem')
     parser.set_defaults(pin_mem=True)
-    parser.add_argument('--save_ckpt', action='store_true', help='save ckpt during training.')
-    parser.set_defaults(save_ckpt=False)
+    parser.add_argument('--save_ckpt', type=bool, default=False, help='save ckpt during training.')
 
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
