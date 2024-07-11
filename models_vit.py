@@ -50,7 +50,8 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         print(f"num AUs: {num_classes}, num subjects: {num_subjects}")
         if not self.grad_reverse == 0:
             self.ID_head = nn.Linear(kwargs['embed_dim'], int(kwargs['embed_dim'] // 2))
-            self.ID_head2 = nn.Linear(int(kwargs['embed_dim'] // 2), num_subjects)
+            self.ID_head2 = nn.Linear(int(kwargs['embed_dim'] // 2), int(kwargs['embed_dim'] // 4))
+            self.ID_head3 = nn.Linear(int(kwargs['embed_dim'] // 4), num_subjects)
             self.ID_activate = nn.GELU()
             print(f"activate ID adver head")
 
@@ -85,6 +86,8 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
             ID_pred = self.ID_head(x)
             ID_pred = self.ID_activate(ID_pred)
             ID_pred = self.ID_head2(ID_pred)
+            ID_pred = self.ID_activate(ID_pred)
+            ID_pred = self.ID_head3(ID_pred)
 
             return (AU_pred, ID_pred)
         else:
