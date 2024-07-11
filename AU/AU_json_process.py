@@ -122,13 +122,56 @@ def extract_100_samples_for_each_subject(input_file=None, train_output_file=None
     print(f"created {train_output_file} and {test_output_file}")
 
 
+def extract_300_samples_for_each_subject_for_tSNE(input_file=None, output_file=None, max_num=500):
+    # Read all lines from the file
+    with open(input_file, 'r') as file:
+        lines = file.readlines()
+
+    # Shuffle the lines
+    random.shuffle(lines)
+
+    # Dictionary to hold up to 100 samples for each ID
+    samples_by_id = defaultdict(list)
+
+    # Process each line after shuffling
+    for line in lines:
+        # Convert line to dictionary
+        data = json.loads(line)
+
+        # Extract ID from img_path (assuming format 'ID/...')
+        person_id = data['img_path'].split('_')[0][1:]
+
+        # Store the data for this ID, but only up to 100 samples
+        if len(samples_by_id[person_id]) < max_num:
+            samples_by_id[person_id].append(data)
+
+            # If 100 samples are collected for any ID, continue without adding more
+            if len(samples_by_id[person_id]) == max_num:
+                if all(len(samples) == max_num for samples in samples_by_id.values()):
+                    break
+
+    # Open training and testing files to write line by line
+    with open(output_file, 'w') as file:
+        # Split the samples into 70 train and 30 test for each ID
+        for person_id, samples in samples_by_id.items():
+            random.shuffle(samples)  # Shuffle to randomize which samples go into train/test
+
+            # Write samples line by line
+            for sample in samples:
+                file.write(json.dumps(sample) + '\n')
+
+    print(f"created {output_file}")
+
+
 if __name__ == "__main__":
     # generate_3_fold_subjects()
     # split_BP4D_train_test(json_file='./BP4D_labels.json',
     #                       train_output_file='./BP4D_train3.json',
     #                       test_output_file='./BP4D_test3.json',
     #                       test_subjects=SUBJECTS_3)
-    extract_100_samples_for_each_subject(input_file='./BP4D_all.json',
-                                         train_output_file='./BP4D_ID_prob_train.json',
-                                         test_output_file='./BP4D_ID_prob_test.json')
+    # extract_100_samples_for_each_subject(input_file='./BP4D_all.json',
+    #                                      train_output_file='./BP4D_ID_prob_train.json',
+    #                                      test_output_file='./BP4D_ID_prob_test.json')
+    extract_300_samples_for_each_subject_for_tSNE(input_file='./BP4D_all.json',
+                                                  output_file= './BP4D_500samples_tSNE')
 
