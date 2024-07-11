@@ -33,6 +33,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
+    metric_logger.add_meter('ID_loss', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 200  # print log every 20 steps
     accum_iter = args.accum_iter
@@ -84,6 +85,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         torch.cuda.synchronize()
 
         metric_logger.update(loss=loss_value)
+        metric_logger.update(ID_loss=ID_loss.item())
         min_lr = 10.
         max_lr = 0.
         for group in optimizer.param_groups:
