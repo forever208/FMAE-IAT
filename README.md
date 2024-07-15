@@ -1,19 +1,26 @@
-## Masked Autoencoders: A PyTorch Implementation
+## FMAE-IAT
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-bp4d)](https://paperswithcode.com/sota/facial-action-unit-detection-on-bp4d?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-bp4d-1)](https://paperswithcode.com/sota/facial-action-unit-detection-on-bp4d-1?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-disfa)](https://paperswithcode.com/sota/facial-action-unit-detection-on-disfa?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-expression-recognition-on-raf-db)](https://paperswithcode.com/sota/facial-expression-recognition-on-raf-db?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-expression-recognition-on-affectnet)](https://paperswithcode.com/sota/facial-expression-recognition-on-affectnet?p=representation-learning-and-identity)
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/11435359/146857310-f258c86c-fde6-48e8-9cee-badd2b21bd2c.png" width="480">
-</p>
 
+This is the codebase for our paper **Representation Learning and Identity Adversarial Training for Facial Behavior
+Understanding**
 
-This is a PyTorch/GPU re-implementation of the paper [Masked Autoencoders Are Scalable Vision Learners](https://arxiv.org/abs/2111.06377):
 ```
-@Article{MaskedAutoencoders2021,
-  author  = {Kaiming He and Xinlei Chen and Saining Xie and Yanghao Li and Piotr Doll{\'a}r and Ross Girshick},
-  journal = {arXiv:2111.06377},
-  title   = {Masked Autoencoders Are Scalable Vision Learners},
-  year    = {2021},
+@misc{ning2024representation,
+    title={Representation Learning and Identity Adversarial Training for Facial Behavior Understanding},
+    author={Mang Ning and Albert Ali Salah and Itir Onal Ertugrul},
+    year={2024},
+    eprint={2407.11243},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
 }
 ```
+
+The code has been tested on A100 GPU.
 
 ### Installation
 for AU finetune and pretraining, we use pytorch 1.8.0
@@ -27,7 +34,7 @@ pip install lmdb
 pip install scikit-learn
 ```
 
-for ID linear probig, we use pytorch 1.11.0 (1.8.0 has an issue with AdamW when freezing some layers)
+for ID linear probing, we use pytorch 1.11.0 (1.8.0 has an issue with AdamW when freezing some layers)
 ```shell
 conda craete -n mae_lb python==3.9
 conda activate mae_lb
@@ -42,134 +49,238 @@ pip install scikit-learn
 
 ### Catalog
 
-- [x] Visualization demo
-- [x] Pre-trained checkpoints + fine-tuning code
-- [x] Pre-training code
+- [x] FMAE pretraining by MAE
+- [x] Finetune FMAE and FMAE-IAT on AU benchmarks 
+  - [x] BP4D
+  - [x] BP4D+
+  - [x] DISFA
+- [x] Finetune FMAE on FER benchmarks
+- [x] ID linear probing
 
-### Visualization demo
 
-Run our interactive visualization demo using [Colab notebook](https://colab.research.google.com/github/facebookresearch/mae/blob/main/demo/mae_visualize.ipynb) (no GPU needed):
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/11435359/147859292-77341c70-2ed8-4703-b153-f505dcb6f2f8.png" width="600">
+
+### FMAE pretraining
+To use code, checkout to branch `mae_pretraining`
+
+The following table provides the Face9M pre-trained checkpoints:
+
+| FMAE            | ViT-large                                                                                      | ViT-base                                                                                       | ViT-small                                                                                      |
+|-----------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| pretrained ckpt | [download](https://drive.google.com/file/d/1xccb4O5cXeq2zO5_Ec1Ybz-VLO4PAwRr/view?usp=sharing) | [download](https://drive.google.com/file/d/1uCdJq4xQAbYQHTVpcflrnK8OPavJ8Fz7/view?usp=sharing) | [download](https://drive.google.com/file/d/1p1hJd9ks3U6tg3N1rlEmDyuUNXoRbATJ/view?usp=sharing) |
+
+The pretraining settings are:
+
+**ViT-small** (use --resume if necessary)
+
+2 A100 GPUs, batch_size=512
+```shell
+python submitit_pretrain.py \
+--job_dir exp_mae_pretrain_vit-S --nodes 1 --ngpus 2 \
+--batch_size 256 --epochs 50 --warmup_epochs 2 \
+--model mae_vit_small_patch16 --data_path YOUR_DATASET_PATH \
+--norm_pix_loss --mask_ratio 0.75 --blr 1.5e-4 --weight_decay 0.05 \
+--resume RESUME_CKPT --start_epoch RESUME_EPOCH \
+```
+
+
+**ViT-base**
+
+2 A100 GPUs, batch_size=512
+```shell
+python submitit_pretrain.py \
+--job_dir exp_mae_pretrain --nodes 1 --ngpus 2 \
+--batch_size 256 --epochs 50 --warmup_epochs 2 \
+--model mae_vit_base_patch16 --data_path YOUR_DATASET_PATH \
+--norm_pix_loss --mask_ratio 0.75 --blr 1.5e-4 --weight_decay 0.05 \
+```
+
+**ViT-large**
+
+4 A100 GPUs, batch_size=512
+```shell
+python submitit_pretrain.py \
+--job_dir exp_mae_pretrain_vit-L --nodes 1 --ngpus 4 \
+--batch_size 128 --epochs 50 --warmup_epochs 2 \
+--model mae_vit_large_patch16 --data_path YOUR_DATASET_PATH \
+--norm_pix_loss --mask_ratio 0.75 --blr 1.5e-4 --weight_decay 0.05 \
+```
+
+
+## Finetune FMAE and FMAE-IAT on AU benchmarks
+
+You can downlaod our ViT-large model for finetune FMAE or FMAE-IAT on AU datasets.
+
+We use json file to contain the AU labels. ID labels are inclueded in the image filename and would be automatically extracted.
+A template json label looks like (999 stands for the non-existance of this AU):
+<p align="left">
+  <img src="figures/json_file.png" width='100%' height='100%'/>
 </p>
 
-### Fine-tuning with pre-trained checkpoints
+For reproducibility, you can directly **download all AU label json files that we have processed** -->
+[download json](https://drive.google.com/drive/folders/1V5QMB2NouhP_Sw7BwiKs3Eaf-PMItMda?usp=sharing)
 
-The following table provides the pre-trained checkpoints used in the paper, converted from TF/TPU to PT/GPU:
-<table><tbody>
-<!-- START TABLE -->
-<!-- TABLE HEADER -->
-<th valign="bottom"></th>
-<th valign="bottom">ViT-Base</th>
-<th valign="bottom">ViT-Large</th>
-<th valign="bottom">ViT-Huge</th>
-<!-- TABLE BODY -->
-<tr><td align="left">pre-trained checkpoint</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_base.pth">download</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_large.pth">download</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_huge.pth">download</a></td>
-</tr>
-<tr><td align="left">md5</td>
-<td align="center"><tt>8cad7c</tt></td>
-<td align="center"><tt>b8b06e</tt></td>
-<td align="center"><tt>9bdbb0</tt></td>
-</tr>
-</tbody></table>
+For reproducibility, we set random seeds (use 0/1/2) for all experiments and share our cross-fold settings.
 
-The fine-tuning instruction is in [FINETUNE.md](FINETUNE.md).
+### BP4D
+To use code, checkout to branch `BP4D_and_BP4Dplus`
+(Note that branch `BP4D_ID_head_ablation` is used for abalation)
 
-By fine-tuning these pre-trained models, we rank #1 in these classification tasks (detailed in the paper):
-<table><tbody>
-<!-- START TABLE -->
-<!-- TABLE HEADER -->
-<th valign="bottom"></th>
-<th valign="bottom">ViT-B</th>
-<th valign="bottom">ViT-L</th>
-<th valign="bottom">ViT-H</th>
-<th valign="bottom">ViT-H<sub>448</sub></th>
-<td valign="bottom" style="color:#C0C0C0">prev best</td>
-<!-- TABLE BODY -->
-<tr><td align="left">ImageNet-1K (no external data)</td>
-<td align="center">83.6</td>
-<td align="center">85.9</td>
-<td align="center">86.9</td>
-<td align="center"><b>87.8</b></td>
-<td align="center" style="color:#C0C0C0">87.1</td>
-</tr>
-<td colspan="5"><font size="1"><em>following are evaluation of the same model weights (fine-tuned in original ImageNet-1K):</em></font></td>
-<tr>
-</tr>
-<tr><td align="left">ImageNet-Corruption (error rate) </td>
-<td align="center">51.7</td>
-<td align="center">41.8</td>
-<td align="center"><b>33.8</b></td>
-<td align="center">36.8</td>
-<td align="center" style="color:#C0C0C0">42.5</td>
-</tr>
-<tr><td align="left">ImageNet-Adversarial</td>
-<td align="center">35.9</td>
-<td align="center">57.1</td>
-<td align="center">68.2</td>
-<td align="center"><b>76.7</b></td>
-<td align="center" style="color:#C0C0C0">35.8</td>
-</tr>
-<tr><td align="left">ImageNet-Rendition</td>
-<td align="center">48.3</td>
-<td align="center">59.9</td>
-<td align="center">64.4</td>
-<td align="center"><b>66.5</b></td>
-<td align="center" style="color:#C0C0C0">48.7</td>
-</tr>
-<tr><td align="left">ImageNet-Sketch</td>
-<td align="center">34.5</td>
-<td align="center">45.3</td>
-<td align="center">49.6</td>
-<td align="center"><b>50.9</b></td>
-<td align="center" style="color:#C0C0C0">36.0</td>
-</tr>
-<td colspan="5"><font size="1"><em>following are transfer learning by fine-tuning the pre-trained MAE on the target dataset:</em></font></td>
-</tr>
-<tr><td align="left">iNaturalists 2017</td>
-<td align="center">70.5</td>
-<td align="center">75.7</td>
-<td align="center">79.3</td>
-<td align="center"><b>83.4</b></td>
-<td align="center" style="color:#C0C0C0">75.4</td>
-</tr>
-<tr><td align="left">iNaturalists 2018</td>
-<td align="center">75.4</td>
-<td align="center">80.1</td>
-<td align="center">83.0</td>
-<td align="center"><b>86.8</b></td>
-<td align="center" style="color:#C0C0C0">81.2</td>
-</tr>
-<tr><td align="left">iNaturalists 2019</td>
-<td align="center">80.5</td>
-<td align="center">83.4</td>
-<td align="center">85.7</td>
-<td align="center"><b>88.3</b></td>
-<td align="center" style="color:#C0C0C0">84.1</td>
-</tr>
-<tr><td align="left">Places205</td>
-<td align="center">63.9</td>
-<td align="center">65.8</td>
-<td align="center">65.9</td>
-<td align="center"><b>66.8</b></td>
-<td align="center" style="color:#C0C0C0">66.0</td>
-</tr>
-<tr><td align="left">Places365</td>
-<td align="center">57.9</td>
-<td align="center">59.4</td>
-<td align="center">59.8</td>
-<td align="center"><b>60.3</b></td>
-<td align="center" style="color:#C0C0C0">58.0</td>
-</tr>
-</tbody></table>
+Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
+<p align="left">
+  <img src="figures/subject_partition.png" width='50%' height='50%'/>
+</p>
 
-### Pre-training
 
-The pre-training instruction is in [PRETRAIN.md](PRETRAIN.md).
+finetune FMAE
+```shell
+python BP4D_finetune.py --seed 0/1/2 --grad_reverse 0 --save_ckpt False \
+--blr 0.0002 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 12 --nb_subjects 41 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path BP4D_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_BP4D_finetune_vit_L --log_dir ./exp_BP4D_finetune_vit_L
+```
 
-### License
 
-This project is under the CC-BY-NC 4.0 license. See [LICENSE](LICENSE) for details.
+finetune FMAE-IAT (lambda=2)
+```shell
+python BP4D_finetune.py --seed 0/1/2 --grad_reverse 2 \
+--blr 0.0005 --batch_size 64 --epochs 30 --warmup_epochs 3 --nb_classes 12 --nb_subjects 41 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path BP4D_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_BP4D_ID_adversarial_ckpt32 --log_dir ./exp_BP4D_ID_adversarial_ckpt32
+```
+
+
+results
+![img.png](figures/BP4D_results.png)
+
+
+
+### BP4D+
+
+To use code, checkout to branch `BP4D_and_BP4Dplus`
+
+we randomly split the subjects into 4 folds, 3 folds used for training and 1 for testing.
+
+|        |                                                                                                                                       BP4D+ subjects                                                                                                                                      |
+|--------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| fold-1 | 'M040', 'F072', 'M015', 'M029', 'M003', 'F076', 'F053', 'F026', 'F044', 'F066',  'F057', 'F061', 'F071', 'M050', 'M033', 'F079', 'F020', 'M025', 'F014', 'F004',  'F013', 'M017', 'F033', 'M042', 'M004', 'F038', 'F019', 'M036', 'M026', 'M048',  'F039', 'F046', 'M051', 'F047', 'M020' |
+| fold-2 | 'F074', 'F012', 'F034', 'M001', 'F056', 'F075', 'M009', 'M038', 'F024', 'M047',  'F016', 'M045', 'M034', 'M022', 'F060', 'M011', 'M044', 'M046', 'M005', 'M028',  'F077', 'F028', 'M055', 'M019', 'F032', 'F030', 'M037', 'M043', 'F031', 'F022',  'M023', 'M018', 'M016', 'F065', 'M052' |
+| fold-3 | 'F029', 'F054', 'F064', 'F045', 'F009', 'F040', 'F008', 'M041', 'F063', 'M056', 'M024', 'F001', 'F080', 'M010', 'F062', 'F035', 'M054', 'F052', 'F027', 'F043',  'F042', 'F050', 'M057', 'F078', 'F058', 'F017', 'M035', 'M030', 'M027', 'F021',  'M031', 'F069', 'F002', 'M008', 'F068'  |
+| fold-4 | 'M058', 'F037', 'F010', 'F023', 'M007', 'M002', 'F025', 'F073', 'F048', 'F041',  'F051', 'F011', 'M032', 'F005', 'M021', 'F018', 'M013', 'M049', 'M014', 'F070',  'F006', 'F067', 'M039', 'M006', 'F059', 'F003', 'F007', 'F049', 'M053', 'F081',  'F055', 'M012', 'F082', 'F015', 'F036' |
+
+
+finetune FMAE
+```shell
+python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 0 \
+--blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 12 --nb_subjects 140 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path BP4D+_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_BP4D_plus_finetune_vit_L --log_dir ./exp_BP4D_plus_finetune_vit_L
+```
+
+
+finetune FMAE-IAT (lambda=1)
+```shell
+python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 1 \
+--blr 0.0005 --batch_size 64 --epochs 30 --warmup_epochs 3 --nb_classes 12 --nb_subjects 140 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path BP4D+_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_BP4D_plus_ID_adversarial --log_dir ./exp_BP4D_plus_ID_adversarial
+```
+
+results
+![img.png](figures/BP4Dplus_results.png)
+
+
+### DISFA
+To use code, checkout to branch `DISFA_finetune_or_ID_adversarial`
+
+
+finetune FMAE
+```shell
+python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0 \
+--blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 8 --nb_subjects 27 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path DISFA_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_DISFA_finetune_vit_L --log_dir ./exp_DISFA_finetune_vit_L
+```
+
+finetune FMAE-IAT (lambda=0.5)
+```shell
+python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0.5 \
+--blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 8 --nb_subjects 27 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--root_path DISFA_DATASET \
+--train_path FOLD_1_TRAIN_JSON \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./exp_DISFA_finetune_adversarial --log_dir ./exp_DISFA_finetune_adversarial
+```
+
+results
+![img.png](figures/DISFA_results.png)
+
+
+## Finetune FMAE on FER benchmarks
+
+
+### RAF-DB
+
+To use code, checkout to branch `RAFDB_finetune`
+
+finetune FMAE
+```shell
+python RAFDB_finetune.py --seed 0/1/2 --blr 0.001 --nb_classes 7 \
+--batch_size 32 --epochs 60 --warmup_epochs 6 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--train_path TRAIN_IMG_FOLDER \
+--test_path TEST_IMG_FOLDER \
+--output_dir ./exp_RAFDB_finetune_vit_L --log_dir ./exp_RAFDB_finetune_vit_L
+```
+
+
+### AffectNet-8
+To use code, checkout to branch `AffectNet_finetune`
+
+finetune FMAE
+```shell
+python AffectNet_finetune.py --seed 0/1/2  --nb_classes 8 \
+--blr 0.0005 --batch_size 64 --accum_iter 1 --epochs 30 --warmup_epochs 3 \
+--model vit_large_patch16 --finetune (ViT-large_ckpt) \
+--train_path TRAIN_IMG_FOLDER \
+--test_path TEST_IMG_FOLDER \
+--output_dir ./exp_AffectNet8_finetune_vit_L --log_dir ./exp_AffectNet8_finetune_vit_L
+```
+
+<p align="left">
+  <img src="figures/FER_results.png" width='50%' height='50%'/>
+</p>
+
+
+
+## Identity Linear probing
+To use code, checkout to branch `BP4D_ID_linear_prob`
+
+After training your FMAE/FMAE-IAT model and saved its ckpt, use the ckpt for identity linear probing.
+
+linear probing of FMAE/FMAE-IAT on BP4D
+
+```shell
+python BP4D_finetune.py --seed 0 --nb_classes 41 \
+--blr 0.0002 --batch_size 64 --epochs 20 --warmup_epochs 2 \
+--model vit_large_patch16 --finetune YOUR FMAE/FMAE-IAT CKPT \
+--root_path BP4D_DATASET \
+--train_path LINEAR_PROB_TRAIN_JSON \
+--test_path LINEAR_PROB_TEST_JSON \
+--output_dir ./exp_BP4D_linear_prob --log_dir ./exp_BP4D_linear_prob
+```
