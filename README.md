@@ -108,7 +108,7 @@ To use code, checkout to branch `BP4D_finetune_or_ID_adversarial`
 
 Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
 <p align="left">
-  <img src="figures/subject_partition.png" width='75%' height='75%'/>
+  <img src="figures/subject_partition.png" width='50%' height='50%'/>
 </p>
 
 
@@ -244,7 +244,7 @@ python AffectNet_finetune.py --seed 0/1/2  --nb_classes 8 \
 ```
 
 <p align="left">
-  <img src="figures/FER_results.png" width='50%' height='50%'/>
+  <img src="figures/FER_results.png" width='30%' height='30%'/>
 </p>
 
 
