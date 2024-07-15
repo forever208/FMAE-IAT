@@ -244,7 +244,7 @@ python AffectNet_finetune.py --seed 0/1/2  --nb_classes 8 \
 ```
 
 <p align="left">
-  <img src="figures/FER_results.png" width='30%' height='30%'/>
+  <img src="figures/FER_results.png" width='50%' height='50%'/>
 </p>
 
 
