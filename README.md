@@ -1,4 +1,10 @@
 ## FMAE-IAT
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-bp4d)](https://paperswithcode.com/sota/facial-action-unit-detection-on-bp4d?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-bp4d-1)](https://paperswithcode.com/sota/facial-action-unit-detection-on-bp4d-1?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-action-unit-detection-on-disfa)](https://paperswithcode.com/sota/facial-action-unit-detection-on-disfa?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-expression-recognition-on-raf-db)](https://paperswithcode.com/sota/facial-expression-recognition-on-raf-db?p=representation-learning-and-identity)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-expression-recognition-on-affectnet)](https://paperswithcode.com/sota/facial-expression-recognition-on-affectnet?p=representation-learning-and-identity)
+
 
 This is the codebase for our paper **Representation Learning and Identity Adversarial Training for Facial Behavior
 Understanding**
