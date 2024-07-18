@@ -10,7 +10,14 @@ This is the codebase for our paper **Representation Learning and Identity Advers
 Understanding**
 
 ```
-xxx
+@misc{ning2024representation,
+    title={Representation Learning and Identity Adversarial Training for Facial Behavior Understanding},
+    author={Mang Ning and Albert Ali Salah and Itir Onal Ertugrul},
+    year={2024},
+    eprint={2407.11243},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
 ```
 
 The code has been tested on A100 GPU.
@@ -57,10 +64,9 @@ To use code, checkout to branch `mae_pretraining`
 
 The following table provides the pre-trained checkpoints used in the paper
 
-| FMAE            | ViT-small | ViT-base | ViT-large |
-|-----------------|-----------|----------|-----------|
-| pretrained ckpt | download  | download | download  |
-
+| FMAE            | ViT-large                                                                                      | ViT-base                                                                                       | ViT-small                                                                                      |
+|-----------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| pretrained ckpt | [download](https://drive.google.com/file/d/1xccb4O5cXeq2zO5_Ec1Ybz-VLO4PAwRr/view?usp=sharing) | [download](https://drive.google.com/file/d/1uCdJq4xQAbYQHTVpcflrnK8OPavJ8Fz7/view?usp=sharing) | [download](https://drive.google.com/file/d/1p1hJd9ks3U6tg3N1rlEmDyuUNXoRbATJ/view?usp=sharing) |
 
 The pretraining settings are:
 
