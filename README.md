@@ -117,7 +117,7 @@ For reproducibility, we set random seeds (use 0/1/2) for all experiments and sha
 
 ### BP4D
 To use code, checkout to branch `BP4D_finetune_or_ID_adversarial`
-
+(Note that '3-layer MLP ID head' and 2-layer MLP ID head' are just for abalation)
 
 Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
 <p align="left">
