@@ -116,7 +116,7 @@ A template json label looks like (999 stands for the non-existance of this AU):
   <img src="figures/json_file.png" width='100%' height='100%'/>
 </p>
 
-For reproducibility, you can directly **download all AU label json files that we have processed**
+For reproducibility, you can directly **download all AU label json files that we have processed** -->
 [download json](https://drive.google.com/drive/folders/1V5QMB2NouhP_Sw7BwiKs3Eaf-PMItMda?usp=sharing)
 
 For reproducibility, we set random seeds (use 0/1/2) for all experiments and share our cross-fold settings.
