@@ -62,7 +62,7 @@ pip install scikit-learn
 ### FMAE pretraining
 To use code, checkout to branch `mae_pretraining`
 
-The following table provides the pre-trained checkpoints used in the paper
+The following table provides the Face9M pre-trained checkpoints:
 
 | FMAE            | ViT-large                                                                                      | ViT-base                                                                                       | ViT-small                                                                                      |
 |-----------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
@@ -71,6 +71,8 @@ The following table provides the pre-trained checkpoints used in the paper
 The pretraining settings are:
 
 **ViT-small** (use --resume if necessary)
+
+2 A100 GPUs, batch_size=512
 ```shell
 python submitit_pretrain.py \
 --job_dir exp_mae_pretrain_vit-S --nodes 1 --ngpus 2 \
@@ -82,6 +84,8 @@ python submitit_pretrain.py \
 
 
 **ViT-base**
+
+2 A100 GPUs, batch_size=512
 ```shell
 python submitit_pretrain.py \
 --job_dir exp_mae_pretrain --nodes 1 --ngpus 2 \
@@ -91,6 +95,8 @@ python submitit_pretrain.py \
 ```
 
 **ViT-large**
+
+4 A100 GPUs, batch_size=512
 ```shell
 python submitit_pretrain.py \
 --job_dir exp_mae_pretrain_vit-L --nodes 1 --ngpus 4 \
