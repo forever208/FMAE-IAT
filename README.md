@@ -120,7 +120,13 @@ For reproducibility, we set random seeds (use 0/1/2) for all experiments and sha
 
 ### BP4D
 To use code, checkout to branch `BP4D_and_BP4Dplus`
-(Note that branch `BP4D_ID_head_ablation` is used for abalation)
+(Note that branch `BP4D_ID_head_ablation` is used for ablation)
+
+we provide the FMAE-IAT model trained on BP4D below:
+| FMAE-IAT (ViT-large) | fold 1                                                                                         | fold 2                                                                                         | fold 3                                                                                         |
+|----------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| finetuned ckpt            | [download](https://drive.google.com/file/d/1w5Gad9YKBJMgdyQ4Ax49WatAzZ7vgrKy/view?usp=sharing) | [download](https://drive.google.com/file/d/1aIY73NFEW0fObVIE6dh06CIi6HfH6T9u/view?usp=sharing) | [download](https://drive.google.com/file/d/1DzP1HrIOOxSYPhrffrRaFrCKeYkWpiPx/view?usp=sharing) |
+
 
 Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
 <p align="left">
@@ -142,7 +148,7 @@ python BP4D_finetune.py --seed 0/1/2 --grad_reverse 0 --save_ckpt False \
 
 finetune FMAE-IAT (lambda=2)
 ```shell
-python BP4D_finetune.py --seed 0/1/2 --grad_reverse 2 \
+python BP4D_finetune.py --seed 0/1/2 --grad_reverse 2 --save_ckpt False \
 --blr 0.0005 --batch_size 64 --epochs 30 --warmup_epochs 3 --nb_classes 12 --nb_subjects 41 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --root_path BP4D_DATASET \
@@ -173,7 +179,7 @@ we randomly split the subjects into 4 folds, 3 folds used for training and 1 for
 
 finetune FMAE
 ```shell
-python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 0 \
+python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 0 --save_ckpt False \
 --blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 12 --nb_subjects 140 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --root_path BP4D+_DATASET \
@@ -185,7 +191,7 @@ python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 0 \
 
 finetune FMAE-IAT (lambda=1)
 ```shell
-python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 1 \
+python BP4D_plus_finetune.py --seed 0/1/2 --grad_reverse 1 --save_ckpt False \
 --blr 0.0005 --batch_size 64 --epochs 30 --warmup_epochs 3 --nb_classes 12 --nb_subjects 140 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --root_path BP4D+_DATASET \
@@ -204,7 +210,7 @@ To use code, checkout to branch `DISFA_finetune_or_ID_adversarial`
 
 finetune FMAE
 ```shell
-python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0 \
+python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0 --save_ckpt False \
 --blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 8 --nb_subjects 27 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --root_path DISFA_DATASET \
@@ -215,7 +221,7 @@ python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0 \
 
 finetune FMAE-IAT (lambda=0.5)
 ```shell
-python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0.5 \
+python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0.5 --save_ckpt False \
 --blr 0.0005 --batch_size 64 --epochs 20 --warmup_epochs 2 --nb_classes 8 --nb_subjects 27 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --root_path DISFA_DATASET \
