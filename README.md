@@ -244,6 +244,10 @@ we provide the FMAE models finetuned on RAF-DB and AffectNet-8 below:
 | [download](https://drive.google.com/file/d/11wnX2oG1rkU8Vgnjgc1I7rQESxtyrFyj/view?usp=drive_link) | [download](https://drive.google.com/file/d/1g9qWvJt1IpyrTIByaIxtj-mdcwV9kezu/view?usp=drive_link) |
 
 
+<p align="left">
+  <img src="figures/FER_results.png" width='50%' height='50%'/>
+</p>
+
 ### RAF-DB
 
 To use code, checkout to branch `RAFDB_finetune`
@@ -271,10 +275,6 @@ python AffectNet_finetune.py --seed 0/1/2  --nb_classes 8 \
 --test_path VAL_IMG_FOLDER \
 --output_dir OUTPUT_FOLDER --log_dir OUTPUT_FOLDER
 ```
-
-<p align="left">
-  <img src="figures/FER_results.png" width='50%' height='50%'/>
-</p>
 
 
 
