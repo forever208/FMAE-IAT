@@ -123,9 +123,10 @@ To use code, checkout to branch `BP4D_and_BP4Dplus`
 (Note that branch `BP4D_ID_head_ablation` is used for ablation)
 
 we provide the FMAE-IAT model trained on BP4D below:
+
 | FMAE-IAT (ViT-large) | fold 1                                                                                         | fold 2                                                                                         | fold 3                                                                                         |
 |----------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| finetuned ckpt            | [download](https://drive.google.com/file/d/1w5Gad9YKBJMgdyQ4Ax49WatAzZ7vgrKy/view?usp=sharing) | [download](https://drive.google.com/file/d/1aIY73NFEW0fObVIE6dh06CIi6HfH6T9u/view?usp=sharing) | [download](https://drive.google.com/file/d/1DzP1HrIOOxSYPhrffrRaFrCKeYkWpiPx/view?usp=sharing) |
+| finetuned ckpt       | [download](https://drive.google.com/file/d/1w5Gad9YKBJMgdyQ4Ax49WatAzZ7vgrKy/view?usp=sharing) | [download](https://drive.google.com/file/d/1aIY73NFEW0fObVIE6dh06CIi6HfH6T9u/view?usp=sharing) | [download](https://drive.google.com/file/d/1DzP1HrIOOxSYPhrffrRaFrCKeYkWpiPx/view?usp=sharing) |
 
 
 Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
@@ -236,6 +237,12 @@ results
 
 ## Finetune FMAE on FER benchmarks
 
+we provide the FMAE models finetuned on RAF-DB and AffectNet-8 below:
+
+| RAF-DB                                                                                            | AffectNet-8                                                                                       |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [download](https://drive.google.com/file/d/11wnX2oG1rkU8Vgnjgc1I7rQESxtyrFyj/view?usp=drive_link) | [download](https://drive.google.com/file/d/1g9qWvJt1IpyrTIByaIxtj-mdcwV9kezu/view?usp=drive_link) |
+
 
 ### RAF-DB
 
@@ -244,11 +251,11 @@ To use code, checkout to branch `RAFDB_finetune`
 finetune FMAE
 ```shell
 python RAFDB_finetune.py --seed 0/1/2 --blr 0.001 --nb_classes 7 \
---batch_size 32 --epochs 60 --warmup_epochs 6 \
+--batch_size 32 --epochs 60 --warmup_epochs 6 --smoothing 0.15 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --train_path TRAIN_IMG_FOLDER \
---test_path TEST_IMG_FOLDER \
---output_dir ./exp_RAFDB_finetune_vit_L --log_dir ./exp_RAFDB_finetune_vit_L
+--test_path VAL_IMG_FOLDER \
+--output_dir OUTPUT_FOLDER --log_dir OUTPUT_FOLDER
 ```
 
 
@@ -258,15 +265,15 @@ To use code, checkout to branch `AffectNet_finetune`
 finetune FMAE
 ```shell
 python AffectNet_finetune.py --seed 0/1/2  --nb_classes 8 \
---blr 0.0005 --batch_size 64 --accum_iter 1 --epochs 30 --warmup_epochs 3 \
+--blr 0.0005 --batch_size 64 --accum_iter 1 --epochs 30 --warmup_epochs 1 --smoothing 0.2 --mixup 0.25 \
 --model vit_large_patch16 --finetune (ViT-large_ckpt) \
 --train_path TRAIN_IMG_FOLDER \
---test_path TEST_IMG_FOLDER \
---output_dir ./exp_AffectNet8_finetune_vit_L --log_dir ./exp_AffectNet8_finetune_vit_L
+--test_path VAL_IMG_FOLDER \
+--output_dir OUTPUT_FOLDER --log_dir OUTPUT_FOLDER
 ```
 
 <p align="left">
-  <img src="figures/FER_results.png" width='50%' height='50%'/>
+  <img src="figures/FER_results.png" width='40%' height='40%'/>
 </p>
 
 
