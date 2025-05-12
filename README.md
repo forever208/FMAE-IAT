@@ -6,8 +6,8 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/representation-learning-and-identity/facial-expression-recognition-on-affectnet)](https://paperswithcode.com/sota/facial-expression-recognition-on-affectnet?p=representation-learning-and-identity)
 
 
-This is the codebase for our paper **Representation Learning and Identity Adversarial Training for Facial Behavior
-Understanding**
+This is the codebase for our FG 2025 paper [**Representation Learning and Identity Adversarial Training for Facial Behavior
+Understanding**](https://arxiv.org/abs/2407.11243)
 
 ```
 @misc{ning2024representation,
