@@ -64,9 +64,9 @@ To use code, checkout to branch `mae_pretraining`
 
 The following table provides the Face9M pre-trained checkpoints:
 
-| FMAE            | ViT-large                                                                                      | ViT-base                                                                                       | ViT-small                                                                                      |
-|-----------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| pretrained ckpt | [download](https://drive.google.com/file/d/1xccb4O5cXeq2zO5_Ec1Ybz-VLO4PAwRr/view?usp=sharing) | [download](https://drive.google.com/file/d/1uCdJq4xQAbYQHTVpcflrnK8OPavJ8Fz7/view?usp=sharing) | [download](https://drive.google.com/file/d/1p1hJd9ks3U6tg3N1rlEmDyuUNXoRbATJ/view?usp=sharing) |
+| FMAE            | ViT-large                                                                           | ViT-base                                                                           | ViT-small                                                                           |
+|-----------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| pretrained ckpt | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_ViT_large.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_ViT_base.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_ViT_small.pth) |
 
 The pretraining settings are:
 
@@ -124,9 +124,9 @@ To use code, checkout to branch `BP4D_and_BP4Dplus`
 
 we provide the FMAE-IAT model trained on BP4D below:
 
-| FMAE-IAT (ViT-large) | fold 1                                                                                         | fold 2                                                                                         | fold 3                                                                                         |
-|----------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| finetuned ckpt       | [download](https://drive.google.com/file/d/1w5Gad9YKBJMgdyQ4Ax49WatAzZ7vgrKy/view?usp=sharing) | [download](https://drive.google.com/file/d/1aIY73NFEW0fObVIE6dh06CIi6HfH6T9u/view?usp=sharing) | [download](https://drive.google.com/file/d/1DzP1HrIOOxSYPhrffrRaFrCKeYkWpiPx/view?usp=sharing) |
+| FMAE-IAT (ViT-large) | fold 1                                                                                   | fold 2                                                                                   | fold 3                                                                                   |
+|----------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| finetuned ckpt       | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_BP4D_fold1.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_BP4D_fold2.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_BP4D_fold3.pth) |
 
 
 Our subject partitions of BP4D and DISFA follow the paper 'Multi-scale Promoted Self-adjusting Correlation Learning for Facial Action Unit Detection'
@@ -239,9 +239,9 @@ results
 
 we provide the FMAE models finetuned on RAF-DB and AffectNet-8 below:
 
-| RAF-DB                                                                                            | AffectNet-8                                                                                       |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| [download](https://drive.google.com/file/d/11wnX2oG1rkU8Vgnjgc1I7rQESxtyrFyj/view?usp=drive_link) | [download](https://drive.google.com/file/d/1g9qWvJt1IpyrTIByaIxtj-mdcwV9kezu/view?usp=drive_link) |
+| RAF-DB                                                                          | AffectNet-8                                                                          |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_RAFDB.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_AffectNet8.pth) |
 
 
 <p align="left">
