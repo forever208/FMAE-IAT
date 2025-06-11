@@ -209,6 +209,15 @@ results
 To use code, checkout to branch `DISFA_finetune_or_ID_adversarial`
 
 
+we provide the FMAE-IAT model trained on DISFA below:
+
+| FMAE-IAT (ViT-large) | fold 1                                                                                    | fold 2                                                                                    | fold 3                                                                                    |
+|----------------------|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| finetuned ckpt       | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_DISFA_fold1.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_DISFA_fold2.pth) | [download](https://huggingface.co/forever208/FMAE-IAT/blob/main/FMAE_IAT_DISFA_fold3.pth) |
+
+
+
+
 finetune FMAE
 ```shell
 python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0 --save_ckpt False \
