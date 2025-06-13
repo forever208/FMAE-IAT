@@ -240,6 +240,16 @@ python DISFA_finetune.py --seed 0/1/2 --grad_reverse 0.5 --save_ckpt False \
 --output_dir ./exp_DISFA_finetune_adversarial --log_dir ./exp_DISFA_finetune_adversarial
 ```
 
+
+evaluate FMAE-IAT
+```shell
+python DISFA_evaluation.py --seed 1 --grad_reverse 0.5 --nb_classes 8 --nb_subjects 27 \
+--model vit_large_patch16 --finetune FMAE_IAT_CKPT \
+--root_path DISFA_DATASET \
+--test_path FOLD_1_TEST_JSON \
+--output_dir ./eval_results --log_dir ./eval_results
+```
+
 results
 ![img.png](figures/DISFA_results.png)
 
